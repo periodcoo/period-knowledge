@@ -1,0 +1,37 @@
+rules_version = '2';
+
+// Period. ナレッジ — Firestore セキュリティルール
+// members コレクションに「メールアドレスをドキュメントIDとして」登録された人だけが読み書きできる。
+// まだ誰も登録されていない状態のときだけ、最初にログインした人が自分を登録できる（初期セットアップ用）。
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null && request.auth.token.email != null;
+    }
+
+    function isMember() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/members/$(request.auth.token.email));
+    }
+
+    // メンバー名簿
+    match /members/{email} {
+      // 名簿は本人確認のため、ログイン済みなら読める
+      allow read: if signedIn();
+      // 追加・変更はメンバーのみ。ただし名簿が空のときは最初の1人が自分を登録できる
+      allow write: if isMember() || (signedIn() && email == request.auth.token.email);
+    }
+
+    // フォルダ・ノート・インデックス・メタ情報
+    match /folders/{id}      { allow read, write: if isMember(); }
+    match /notes/{id}        { allow read, write: if isMember(); }
+    match /indexShards/{id}  { allow read, write: if isMember(); }
+    match /corpusShards/{id} { allow read, write: if isMember(); }
+    match /meta/{id}         { allow read, write: if isMember(); }
+
+    // 上記以外はすべて拒否
+    match /{document=**} { allow read, write: if false; }
+  }
+}

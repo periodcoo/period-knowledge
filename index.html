@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Period. ナレッジ</title>
+<style>
+:root{
+  --navy:#141b2d; --navy2:#1e2740; --line:#e3e6ec; --line2:#2a3450;
+  --text:#1a1f2b; --sub:#6b7280; --accent:#8a6d3b; --bg:#f7f8fa; --white:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic Medium",sans-serif;
+  color:var(--text);background:var(--bg);font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font:inherit;color:inherit}
+a{color:var(--accent)}
+
+#app{display:none;height:100vh;grid-template-columns:264px 340px 1fr;grid-template-rows:56px 1fr}
+#app.ready{display:grid}
+.topbar{grid-column:1/4;background:var(--navy);display:flex;align-items:center;gap:20px;padding:0 20px;color:#fff}
+.brand{font-size:15px;letter-spacing:.14em;font-weight:600;white-space:nowrap}
+.brand span{color:var(--accent);font-weight:400}
+.search-wrap{flex:1;max-width:560px;position:relative}
+.search-wrap input{width:100%;height:34px;border-radius:4px;border:1px solid var(--line2);
+  background:var(--navy2);color:#fff;padding:0 12px 0 34px;outline:none}
+.search-wrap input::placeholder{color:#8892a6}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-ico{position:absolute;left:11px;top:9px;width:15px;height:15px;opacity:.55}
+.topbar .who{font-size:12px;color:#a9b2c4;margin-left:auto;display:flex;align-items:center;gap:14px;white-space:nowrap}
+.topbar .who button{color:#a9b2c4;font-size:12px;text-decoration:underline}
+
+.pane{overflow-y:auto;background:var(--white)}
+#sidebar{background:var(--navy);color:#c8cfdd;border-right:1px solid var(--line2);padding-bottom:40px}
+#list{border-right:1px solid var(--line)}
+#detail{background:var(--white)}
+
+.mode-tabs{display:flex;border-bottom:1px solid var(--line2)}
+.mode-tabs button{flex:1;padding:11px 0;font-size:12px;color:#8892a6;border-bottom:2px solid transparent}
+.mode-tabs button.on{color:#fff;border-bottom-color:var(--accent)}
+.sec{margin-top:6px}
+.sec-h{display:flex;align-items:center;gap:7px;padding:9px 16px;font-size:12px;letter-spacing:.06em;
+  color:#9aa4b8;cursor:pointer;user-select:none}
+.sec-h:hover{color:#fff}
+.sec-h .cnt{margin-left:auto;font-size:11px;color:#6f7a92}
+.fold{padding:7px 16px 7px 34px;font-size:13px;color:#c8cfdd;cursor:pointer;display:flex;gap:8px;align-items:baseline}
+.fold:hover{background:var(--navy2)}
+.fold.on{background:var(--navy2);color:#fff;box-shadow:inset 2px 0 0 var(--accent)}
+.fold .n{margin-left:auto;font-size:11px;color:#6f7a92}
+.arrow{width:8px;transition:transform .15s;display:inline-block;font-size:8px}
+.arrow.open{transform:rotate(90deg)}
+
+.list-head{padding:14px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--white);z-index:2}
+.list-head h2{font-size:15px;font-weight:600}
+.list-head .meta{font-size:11px;color:var(--sub);margin-top:3px}
+.newbtn{margin-top:10px;background:var(--navy);color:#fff;padding:7px 14px;border-radius:4px;font-size:12px}
+.newbtn:hover{background:var(--navy2)}
+.item{padding:13px 18px;border-bottom:1px solid #f0f2f5;cursor:pointer}
+.item:hover{background:#fafbfc}
+.item.on{background:#f4f1ea;box-shadow:inset 3px 0 0 var(--accent)}
+.item h3{font-size:13.5px;font-weight:600;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item p{font-size:12px;color:var(--sub);line-height:1.55;max-height:3.1em;overflow:hidden}
+.item .foot{margin-top:6px;font-size:11px;color:#9aa3b2;display:flex;gap:10px;align-items:center}
+.tag{display:inline-block;font-size:10px;border:1px solid var(--line);border-radius:3px;padding:0 5px;color:var(--sub)}
+.badge{font-size:10px;background:#eceff4;color:#6b7280;border-radius:3px;padding:1px 6px}
+.badge.arc{background:#f0e9dc;color:#8a6d3b}
+
+.detail-head{padding:22px 32px 14px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--white);z-index:2}
+.detail-head h1{font-size:20px;font-weight:600;line-height:1.45;outline:none}
+.detail-head h1[contenteditable]:focus{background:#fbfaf7}
+.detail-meta{font-size:11.5px;color:var(--sub);margin-top:8px;display:flex;gap:16px;flex-wrap:wrap}
+.tools{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.tools button{border:1px solid var(--line);border-radius:3px;padding:4px 10px;font-size:11.5px;color:var(--sub)}
+.tools button:hover{border-color:var(--accent);color:var(--accent)}
+.tools button.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+.tools button.primary:hover{background:var(--navy2)}
+.body{padding:24px 32px 100px;max-width:860px;outline:none;font-size:14px;word-wrap:break-word}
+.body[contenteditable="true"]{background:#fdfcfa;min-height:50vh}
+.body img{max-width:100%;height:auto}
+.body a{word-break:break-all}
+.body table{border-collapse:collapse;max-width:100%}
+.body td,.body th{border:1px solid var(--line);padding:5px 8px}
+.attach{margin:0 32px 40px;max-width:860px;border-top:1px solid var(--line);padding-top:16px}
+.attach h4{font-size:12px;color:var(--sub);margin-bottom:10px;letter-spacing:.06em}
+.att-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f2f4f7;font-size:12.5px}
+.att-row .sz{color:#9aa3b2;font-size:11px;margin-left:auto}
+.att-row button{font-size:11px;color:var(--accent);text-decoration:underline;white-space:nowrap}
+.empty{padding:80px 40px;text-align:center;color:#9aa3b2;font-size:13px}
+
+.gate{max-width:520px;margin:70px auto;background:#fff;border:1px solid var(--line);border-radius:6px;padding:36px 40px}
+.gate h1{font-size:17px;margin-bottom:6px;letter-spacing:.1em}
+.gate p{font-size:13px;color:var(--sub);margin-bottom:22px}
+.gate label{display:block;font-size:11.5px;color:var(--sub);margin:14px 0 4px}
+.gate input,.gate textarea{width:100%;border:1px solid var(--line);border-radius:4px;padding:9px 11px;outline:none}
+.gate input:focus,.gate textarea:focus{border-color:var(--accent)}
+.gate textarea{height:170px;font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5}
+.gate button.go{margin-top:22px;width:100%;background:var(--navy);color:#fff;padding:11px;border-radius:4px}
+.gate button.go:hover{background:var(--navy2)}
+.gate .err{color:#b3261e;font-size:12px;margin-top:12px}
+.gate .note{font-size:11.5px;color:#9aa3b2;margin-top:16px;line-height:1.65}
+
+.modal{position:fixed;inset:0;background:rgba(20,27,45,.55);display:flex;align-items:center;justify-content:center;z-index:50}
+.modal .box{background:#fff;border-radius:6px;padding:32px 36px;width:520px;max-height:80vh;overflow:auto}
+.modal h3{font-size:15px;margin-bottom:8px}
+.modal p{font-size:12.5px;color:var(--sub);margin-bottom:16px}
+.bar{height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin:14px 0}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+.log{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--sub);max-height:180px;overflow:auto;
+  background:#fafbfc;border:1px solid var(--line);border-radius:4px;padding:10px;white-space:pre-wrap}
+.modal .row{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.modal .row button{padding:8px 16px;border-radius:4px;font-size:13px;border:1px solid var(--line)}
+.modal .row button.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--line);border-top-color:var(--accent);
+  border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(max-width:1100px){#app{grid-template-columns:210px 300px 1fr}}
+</style>
+</head>
+<body>
+
+<div id="gate"></div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="brand">PERIOD. <span>ナレッジ</span></div>
+    <div class="search-wrap">
+      <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+        <circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      <input id="q" placeholder="キーワードで検索（本文まで対象）" autocomplete="off">
+    </div>
+    <div class="who"><span id="whoami"></span><button id="signout">ログアウト</button></div>
+  </div>
+  <div class="pane" id="sidebar"></div>
+  <div class="pane" id="list"></div>
+  <div class="pane" id="detail"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, where,
+  orderBy, limit, writeBatch, Bytes }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const $ = s => document.querySelector(s);
+const el = (t,c,h) => { const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e; };
+const esc = s => (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = d => { if(!d) return ''; const t=new Date(d);
+  return isNaN(t) ? '' : `${t.getFullYear()}/${t.getMonth()+1}/${t.getDate()}`; };
+const mb = n => n>=1048576 ? (n/1048576).toFixed(1)+' MB' : Math.max(1,Math.round(n/1024))+' KB';
+
+let fb=null, db=null, auth=null, ME=null;
+const S = { folders:[], notes:[], corpus:null, mode:'work', folderId:null, noteId:null,
+            open:{}, results:null, editing:false };
+
+const CFG_KEY = 'period_knowledge_cfg';
+boot();
+
+async function boot(){
+  // 同じ場所に置いた firebase-config.json があればそれを使う（各自の貼り付けが不要）
+  let raw = null;
+  try{
+    const r = await fetch('./firebase-config.json', {cache:'no-cache'});
+    if(r.ok){ const j = await r.json(); if(j && j.apiKey) raw = JSON.stringify(j); }
+  }catch(e){ /* ファイルが無ければ手入力にフォールバック */ }
+  if(!raw) raw = localStorage.getItem(CFG_KEY);
+  if(!raw){ return renderSetup(); }
+  let cfg; try{ cfg=JSON.parse(raw); }catch(e){ return renderSetup('保存された設定を読めませんでした'); }
+  try{
+    fb = initializeApp(cfg); db = getFirestore(fb); auth = getAuth(fb);
+  }catch(e){ return renderSetup('Firebaseの初期化に失敗しました: '+e.message); }
+  onAuthStateChanged(auth, async u => {
+    if(!u){ return renderLogin(); }
+    const ok = await allowed(u.email);
+    if(!ok){ await signOut(auth);
+      return renderLogin(`${u.email} はまだ許可されていません。管理者に members への追加を依頼してください。`); }
+    ME = { email:u.email, name:u.displayName || u.email };
+    $('#gate').style.display='none';
+    $('#app').classList.add('ready');
+    $('#whoami').textContent = ME.name;
+    await loadAll();
+  });
+}
+
+async function allowed(email){
+  try{
+    const s = await getDoc(doc(db,'members',email));
+    if(s.exists()) return true;
+    const any = await getDocs(query(collection(db,'members'), limit(1)));
+    return any.empty;
+  }catch(e){ return false; }
+}
+
+function renderSetup(err){
+  $('#app').classList.remove('ready');
+  const g=$('#gate'); g.style.display='block';
+  g.innerHTML = `<div class="gate">
+    <h1>初回セットアップ</h1>
+    <p>Firebaseコンソールで作成したウェブアプリの設定を貼り付けてください。この端末にのみ保存されます。</p>
+    <label>firebaseConfig（波かっこごと貼り付け）</label>
+    <textarea id="cfg" placeholder='{
+  "apiKey": "...",
+  "authDomain": "xxx.firebaseapp.com",
+  "projectId": "xxx",
+  "storageBucket": "xxx.appspot.com",
+  "messagingSenderId": "...",
+  "appId": "..."
+}'></textarea>
+    <button class="go" id="save">保存して開始</button>
+    ${err?`<div class="err">${esc(err)}</div>`:''}
+    <div class="note">Firebaseコンソール → プロジェクトの設定 → マイアプリ → ウェブアプリ の
+    「SDK の設定と構成」に出る内容です。const firebaseConfig = の右側だけを貼ってください。</div>
+  </div>`;
+  $('#save').onclick = () => {
+    let t = $('#cfg').value.trim();
+    t = t.replace(/^const\s+firebaseConfig\s*=\s*/,'').replace(/;\s*$/,'');
+    let cfg;
+    try{ cfg = JSON.parse(t); }
+    catch(e){ try{ cfg = (0,eval)('('+t+')'); }catch(e2){ return alert('設定を読み取れませんでした。波かっこごと貼り付けてください。'); } }
+    if(!cfg || !cfg.apiKey || !cfg.projectId) return alert('apiKey と projectId が見つかりません。');
+    localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+    location.reload();
+  };
+}
+
+function renderLogin(err){
+  $('#app').classList.remove('ready');
+  const g=$('#gate'); g.style.display='block';
+  g.innerHTML = `<div class="gate">
+    <h1>PERIOD. ナレッジ</h1>
+    <p>社内アカウントでログインしてください。</p>
+    <button class="go" id="gin">Googleでログイン</button>
+    ${err?`<div class="err">${esc(err)}</div>`:''}
+    <div class="note"><button id="reset" style="text-decoration:underline">Firebaseの設定をやり直す</button></div>
+  </div>`;
+  $('#gin').onclick = async () => {
+    try{ await signInWithPopup(auth, new GoogleAuthProvider()); }
+    catch(e){ renderLogin('ログインに失敗しました: '+e.message); }
+  };
+  $('#reset').onclick = () => { localStorage.removeItem(CFG_KEY); location.reload(); };
+}
+
+$('#signout').onclick = () => signOut(auth).then(()=>location.reload());
+
+async function loadAll(){
+  $('#sidebar').innerHTML = '<div style="padding:20px;color:#8892a6;font-size:12px"><span class="spin"></span> 読み込み中</div>';
+  const fs = await getDocs(collection(db,'folders'));
+  S.folders = fs.docs.map(d=>({id:d.id, ...d.data()}));
+  if(S.folders.length===0){ return offerImport(); }
+  await loadIndex();
+  renderSidebar(); renderList(); renderDetail();
+}
+
+async function loadIndex(){
+  const meta = await getDoc(doc(db,'meta','index'));
+  const md  = meta.exists()? meta.data() : {version:0, builtAt:'1970-01-01'};
+  const cached = await idbGet('idx_'+md.version);
+  if(cached){ S.notes = cached; }
+  else{
+    const shards = await getDocs(query(collection(db,'indexShards'), orderBy('n')));
+    let all=[];
+    for(const s of shards.docs){
+      const txt = await ungzip(s.data().gz.toUint8Array());
+      all = all.concat(JSON.parse(txt));
+    }
+    S.notes = all;
+    await idbSet('idx_'+md.version, all);
+  }
+  // インデックス作成後に追加・更新されたノートを差分で取り込む
+  try{
+    const delta = await getDocs(query(collection(db,'notes'),
+      where('updatedAt','>', md.builtAt || '1970-01-01'), orderBy('updatedAt','desc'), limit(500)));
+    const map = new Map(S.notes.map(n=>[String(n.id),n]));
+    delta.docs.forEach(d=>{
+      const v=d.data();
+      map.set(d.id, {id:d.id, folderId:String(v.folderId), folder:v.folder, title:v.title,
+        preview:v.preview, updatedAt:v.updatedAt, author:v.author, archived:!!v.archived,
+        daily:!!v.daily, att:(v.attachments||[]).length});
+    });
+    S.notes=[...map.values()];
+  }catch(e){ /* 差分が取れなくても一覧は表示する */ }
+  loadCorpus();   // 本文検索用データは裏で読み込む
+}
+
+// 本文全文（Firestore に gzip 圧縮して保存。ログインした人しか読めない）
+async function loadCorpus(){
+  if(S.corpus) return;
+  try{
+    const meta = await getDoc(doc(db,'meta','corpus'));
+    const ver = meta.exists()? meta.data().version : 0;
+    if(!ver) return;
+    const cached = await idbGet('corpus_'+ver);
+    if(cached){ S.corpus = cached; return; }
+    const shards = await getDocs(query(collection(db,'corpusShards'), orderBy('n')));
+    const all = {};
+    for(const s of shards.docs){
+      const txt = await ungzip(s.data().gz.toUint8Array());
+      Object.assign(all, JSON.parse(txt));
+    }
+    S.corpus = all;
+    await idbSet('corpus_'+ver, all);
+  }catch(e){ /* 読めなくてもタイトル・抜粋の検索は動く */ }
+}
+
+async function ungzip(u8){
+  const ds = new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'));
+  return await new Response(ds).text();
+}
+async function gzipStr(str){
+  const cs = new Blob([str]).stream().pipeThrough(new CompressionStream('gzip'));
+  return new Uint8Array(await new Response(cs).arrayBuffer());
+}
+
+function idb(){ return new Promise((res,rej)=>{ const r=indexedDB.open('period_knowledge',1);
+  r.onupgradeneeded=e=>e.target.result.createObjectStore('kv');
+  r.onsuccess=e=>res(e.target.result); r.onerror=()=>rej(r.error); }); }
+async function idbGet(k){ try{ const d=await idb();
+  return await new Promise(r=>{ const q=d.transaction('kv').objectStore('kv').get(k);
+    q.onsuccess=()=>r(q.result); q.onerror=()=>r(null); }); }catch(e){ return null; } }
+async function idbSet(k,v){ try{ const d=await idb();
+  const tx=d.transaction('kv','readwrite'); tx.objectStore('kv').put(v,k); }catch(e){} }
+
+function renderSidebar(){
+  const sb=$('#sidebar'); sb.innerHTML='';
+  const tabs = el('div','mode-tabs');
+  [['work','実務'],['daily','日報'],['arc','アーカイブ']].forEach(([k,label])=>{
+    const b=el('button',S.mode===k?'on':'',label);
+    b.onclick=()=>{ S.mode=k; S.folderId=null; S.results=null; $('#q').value='';
+      renderSidebar(); renderList(); renderDetail(); };
+    tabs.appendChild(b);
+  });
+  sb.appendChild(tabs);
+
+  const pool = notesInMode();
+  const counts={};
+  pool.forEach(n=>{ counts[n.folderId]=(counts[n.folderId]||0)+1; });
+
+  const bySec={};
+  S.folders.forEach(f=>{ if(!counts[f.id]) return; (bySec[f.section] = bySec[f.section]||[]).push(f); });
+
+  Object.keys(bySec).sort().forEach(sec=>{
+    const total = bySec[sec].reduce((a,f)=>a+counts[f.id],0);
+    const wrap = el('div','sec');
+    const open = S.open[sec] !== false;
+    const h = el('div','sec-h',
+      `<span class="arrow${open?' open':''}">&#9654;</span><span>${esc(sec)}</span><span class="cnt">${total}</span>`);
+    h.onclick=()=>{ S.open[sec]=!open; renderSidebar(); };
+    wrap.appendChild(h);
+    if(open){
+      bySec[sec].sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(f=>{
+        const d=el('div','fold'+(S.folderId===f.id?' on':''),
+          `<span>${esc(f.name)}</span><span class="n">${counts[f.id]}</span>`);
+        d.onclick=()=>{ S.folderId=f.id; S.results=null; $('#q').value='';
+          renderSidebar(); renderList(); renderDetail(); };
+        wrap.appendChild(d);
+      });
+    }
+    sb.appendChild(wrap);
+  });
+}
+
+function notesInMode(){
+  if(S.mode==='arc') return S.notes.filter(n=>n.archived);
+  if(S.mode==='daily') return S.notes.filter(n=>n.daily && !n.archived);
+  return S.notes.filter(n=>!n.daily && !n.archived);
+}
+
+function renderList(){
+  const L=$('#list'); L.innerHTML='';
+  let rows, title, sub;
+  if(S.results){
+    rows = S.results; title='検索結果'; sub=`${rows.length} 件`;
+  }else{
+    const pool = notesInMode();
+    rows = S.folderId ? pool.filter(n=>n.folderId===S.folderId) : pool;
+    const f = S.folders.find(x=>x.id===S.folderId);
+    title = f ? f.name : ({work:'実務ノート',daily:'日報',arc:'アーカイブ'})[S.mode];
+    sub = `${rows.length} 件`;
+  }
+  rows = rows.slice().sort((a,b)=> (b.updatedAt||'').localeCompare(a.updatedAt||''));
+
+  const head = el('div','list-head');
+  head.appendChild(el('h2',null,esc(title)));
+  head.appendChild(el('div','meta',sub));
+  if(S.folderId && !S.results){
+    const b=el('button','newbtn','＋ 新規ノート'); b.onclick=newNote; head.appendChild(b);
+  }
+  L.appendChild(head);
+
+  if(!rows.length){ L.appendChild(el('div','empty','ノートがありません')); return; }
+
+  const box=el('div');
+  rows.slice(0,300).forEach(n=>{
+    const it=el('div','item'+(S.noteId===n.id?' on':''));
+    it.innerHTML = `<h3>${esc(n.title)}</h3><p>${esc(n.preview||'')}</p>
+      <div class="foot"><span>${esc(n.author||'')}</span><span>${fmt(n.updatedAt)}</span>
+      ${n.att?`<span class="badge">添付 ${n.att}</span>`:''}
+      ${n.archived?'<span class="badge arc">アーカイブ</span>':''}
+      ${S.results?`<span style="margin-left:auto">${esc(n.folder||'')}</span>`:''}</div>`;
+    it.onclick=()=>{ S.noteId=n.id; S.editing=false; renderList(); renderDetail(); };
+    box.appendChild(it);
+  });
+  if(rows.length>300) box.appendChild(el('div','empty',`ほか ${rows.length-300} 件は検索で絞り込んでください`));
+  L.appendChild(box);
+}
+
+async function renderDetail(){
+  const D=$('#detail');
+  if(!S.noteId){ D.innerHTML='<div class="empty">左の一覧からノートを選んでください</div>'; return; }
+  D.innerHTML='<div class="empty"><span class="spin"></span></div>';
+  const snap = await getDoc(doc(db,'notes',String(S.noteId)));
+  if(!snap.exists()){ D.innerHTML='<div class="empty">ノートが見つかりません</div>'; return; }
+  const n = {id:snap.id, ...snap.data()};
+  const ed = S.editing;
+
+  D.innerHTML='';
+  const head=el('div','detail-head');
+  const h1=el('h1',null,esc(n.title));
+  if(ed){ h1.contentEditable='true'; h1.id='t-edit'; }
+  head.appendChild(h1);
+  head.appendChild(el('div','detail-meta',
+    `<span>${esc(n.folder||'')}</span><span>作成 ${esc(n.author||'')} / ${fmt(n.createdAt)}</span>
+     <span>更新 ${esc(n.editor||'')} / ${fmt(n.updatedAt)}</span>
+     ${(n.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join(' ')}`));
+
+  const tools=el('div','tools');
+  if(ed){
+    [['太字','bold'],['斜体','italic'],['下線','underline'],['箇条書き','insertUnorderedList'],
+     ['番号','insertOrderedList'],['見出し','formatBlock:h3'],['標準','formatBlock:div']]
+      .forEach(([label,cmd])=>{
+        const b=el('button',null,label);
+        b.onmousedown=e=>{ e.preventDefault();
+          const p=cmd.split(':'); document.execCommand(p[0],false,p[1]); };
+        tools.appendChild(b);
+      });
+    const lk=el('button',null,'リンク');
+    lk.onmousedown=e=>{ e.preventDefault(); const u=prompt('URL'); if(u)document.execCommand('createLink',false,u); };
+    tools.appendChild(lk);
+    const sv=el('button','primary','保存'); sv.onclick=()=>saveNote(n); tools.appendChild(sv);
+    const cn=el('button',null,'取消'); cn.onclick=()=>{ S.editing=false; renderDetail(); }; tools.appendChild(cn);
+  }else{
+    const e1=el('button','primary','編集'); e1.onclick=()=>{ S.editing=true; renderDetail(); }; tools.appendChild(e1);
+    const a1=el('button',null, n.archived?'アーカイブ解除':'アーカイブする');
+    a1.onclick=()=>toggleArchive(n); tools.appendChild(a1);
+    const d1=el('button',null,'削除'); d1.onclick=()=>removeNote(n); tools.appendChild(d1);
+  }
+  head.appendChild(tools);
+  D.appendChild(head);
+
+  const body=el('div','body'); body.id='b-edit';
+  body.innerHTML = n.body || '<p style="color:#9aa3b2">（本文なし）</p>';
+  if(ed) body.contentEditable='true';
+  D.appendChild(body);
+
+  if((n.attachments||[]).length){
+    const a=el('div','attach');
+    a.appendChild(el('h4',null,`添付ファイル ${n.attachments.length}件（Googleドライブ内）`));
+    n.attachments.forEach(f=>{
+      const r=el('div','att-row');
+      r.innerHTML=`<span>${esc(f.name)}</span><span class="sz">${mb(f.size||0)}</span>`;
+      const b=el('button',null,'パスをコピー');
+      b.onclick=()=>{ navigator.clipboard.writeText('Claude/stock データ移行/'+f.path);
+        b.textContent='コピーしました'; setTimeout(()=>b.textContent='パスをコピー',1500); };
+      r.appendChild(b); a.appendChild(r);
+    });
+    D.appendChild(a);
+  }
+}
+
+async function saveNote(n){
+  const title = $('#t-edit').innerText.trim() || '(無題)';
+  const body  = $('#b-edit').innerHTML;
+  const text  = $('#b-edit').innerText;
+  const prev  = text.slice(0,200).replace(/\n/g,' ');
+  const now = new Date().toISOString();
+  await setDoc(doc(db,'notes',String(n.id)),
+    { title, body, preview:prev, updatedAt:now, editor:ME.name }, {merge:true});
+  const i = S.notes.findIndex(x=>x.id==n.id);
+  if(i>=0) Object.assign(S.notes[i], {title, preview:prev, updatedAt:now, editor:ME.name, text});
+  S.editing=false; renderList(); renderDetail();
+}
+
+async function newNote(){
+  const f = S.folders.find(x=>x.id===S.folderId); if(!f) return;
+  const id = 'n'+Date.now();
+  const now = new Date().toISOString();
+  const n = { folderId:f.id, folder:f.name, section:f.section, title:'新しいノート', body:'',
+    preview:'', createdAt:now, updatedAt:now, author:ME.name, editor:ME.name,
+    archived:false, daily:S.mode==='daily', tags:[], attachments:[] };
+  await setDoc(doc(db,'notes',id), n);
+  S.notes.unshift({id, ...n, text:'', att:0});
+  S.noteId=id; S.editing=true; renderSidebar(); renderList(); renderDetail();
+}
+
+async function toggleArchive(n){
+  const v=!n.archived;
+  await setDoc(doc(db,'notes',String(n.id)),{archived:v},{merge:true});
+  const i=S.notes.findIndex(x=>x.id==n.id); if(i>=0) S.notes[i].archived=v;
+  renderSidebar(); renderList(); renderDetail();
+}
+async function removeNote(n){
+  if(!confirm(`「${n.title}」を削除します。元に戻せません。`)) return;
+  await deleteDoc(doc(db,'notes',String(n.id)));
+  S.notes = S.notes.filter(x=>x.id!=n.id);
+  S.noteId=null; renderSidebar(); renderList(); renderDetail();
+}
+
+let qt=null;
+$('#q').addEventListener('input', e=>{
+  clearTimeout(qt);
+  const v=e.target.value.trim();
+  qt=setTimeout(()=>doSearch(v), 180);
+});
+function doSearch(q){
+  if(!q){ S.results=null; renderList(); return; }
+  const keys = q.toLowerCase().split(/\s+/).filter(Boolean);
+  const C = S.corpus;
+  const hits = S.notes.filter(n=>{
+    const hay = ((n.title||'')+' '+(n.folder||'')+' '+(n.preview||'')+' '
+      +((C && C[String(n.id)]) || n.text || '')).toLowerCase();
+    return keys.every(k=>hay.includes(k));
+  });
+  hits.sort((a,b)=>{
+    const at=(a.title||'').toLowerCase(), bt=(b.title||'').toLowerCase();
+    const ah=keys.every(k=>at.includes(k))?1:0, bh=keys.every(k=>bt.includes(k))?1:0;
+    if(ah!==bh) return bh-ah;
+    return (b.updatedAt||'').localeCompare(a.updatedAt||'');
+  });
+  S.results = hits; renderList();
+}
+
+function offerImport(){
+  $('#sidebar').innerHTML=''; $('#list').innerHTML='';
+  $('#detail').innerHTML = `<div class="empty" style="padding-top:120px">
+    データがまだ入っていません。<br><br>
+    <button id="imp" class="newbtn" style="font-size:13px;padding:10px 22px">migration_data.json.gz を読み込む</button>
+  </div>`;
+  $('#imp').onclick = pickFile;
+}
+function pickFile(){
+  const inp=el('input'); inp.type='file'; inp.accept='.gz,.json';
+  inp.onchange=()=>{ if(inp.files[0]) runImport(inp.files[0]); };
+  inp.click();
+}
+async function runImport(file){
+  const m=el('div','modal');
+  m.innerHTML=`<div class="box"><h3>データを取り込んでいます</h3>
+    <p>Stockから抽出したノートを Firestore に書き込みます。数分かかります。途中で閉じないでください。</p>
+    <div class="bar"><i id="pb"></i></div><div class="log" id="lg"></div>
+    <div class="row"><button id="cl" class="primary" style="display:none">閉じる</button></div></div>`;
+  document.body.appendChild(m);
+  const log = t => { const g=$('#lg'); g.textContent += t+'\n'; g.scrollTop=g.scrollHeight; };
+  const prog = p => $('#pb').style.width = (p*100).toFixed(1)+'%';
+
+  try{
+    // 先に自分を管理者として登録する（これをしないとルールで書き込みが拒否される）
+    await setDoc(doc(db,'members',ME.email),{name:ME.name, role:'admin'});
+    log(`管理者として登録しました: ${ME.email}`);
+
+    log('ファイルを展開しています…');
+    let text;
+    if(file.name.endsWith('.gz')){
+      text = await new Response(file.stream().pipeThrough(new DecompressionStream('gzip'))).text();
+    }else{ text = await file.text(); }
+    const data = JSON.parse(text);
+    log(`フォルダ ${data.folders.length} 件 / ノート ${data.notes.length} 件`);
+
+    let b = writeBatch(db), c=0;
+    for(const f of data.folders){
+      b.set(doc(db,'folders',String(f.id)), {name:f.name, section:f.section, archived:false});
+      if(++c%400===0){ await b.commit(); b=writeBatch(db); }
+    }
+    await b.commit();
+    log('フォルダを書き込みました');
+
+    b = writeBatch(db); c=0;
+    const idx=[];
+    for(let i=0;i<data.notes.length;i++){
+      const n=data.notes[i];
+      b.set(doc(db,'notes',String(n.id)), {
+        folderId:String(n.folderId), folder:n.folder, section:n.section, title:n.title, body:n.body,
+        preview:n.preview, createdAt:n.createdAt, updatedAt:n.updatedAt,
+        author:n.author, editor:n.editor, archived:n.archived, daily:n.daily,
+        tags:n.tags||[], attachments:n.attachments||[]
+      });
+      idx.push({id:String(n.id), folderId:String(n.folderId), folder:n.folder, title:n.title,
+        preview:n.preview, updatedAt:n.updatedAt, author:n.author,
+        archived:n.archived, daily:n.daily, att:(n.attachments||[]).length});
+      if(++c%400===0){ await b.commit(); b=writeBatch(db);
+        prog(i/data.notes.length*0.85); log(`ノート ${i+1} / ${data.notes.length}`); }
+    }
+    await b.commit();
+    log('ノートを書き込みました');
+
+    log('一覧インデックスを作成しています…');
+    const shards=[]; let cur=[], size=0;
+    for(const r of idx){
+      const s=JSON.stringify(r).length;
+      if(size+s > 900000){ shards.push(cur); cur=[]; size=0; }
+      cur.push(r); size+=s;
+    }
+    if(cur.length) shards.push(cur);
+    b=writeBatch(db);
+    for(let i=0;i<shards.length;i++){
+      const gz = await gzipStr(JSON.stringify(shards[i]));
+      if(gz.length > 950000) throw new Error('インデックスの分割サイズが大きすぎます');
+      b.set(doc(db,'indexShards','s'+String(i).padStart(3,'0')), {n:i, gz:Bytes.fromUint8Array(gz)});
+      if((i+1)%10===0){ await b.commit(); b=writeBatch(db); }
+      prog(0.85 + (i/shards.length)*0.14);
+    }
+    await b.commit();
+    const ver=Date.now();
+    await setDoc(doc(db,'meta','index'),{version:ver, count:idx.length, builtAt:new Date().toISOString()});
+
+    // 本文検索用データ（Firestore に保存するので外部には出ない）
+    log('本文検索データを作成しています…');
+    const enc=new TextEncoder();
+    const cshards=[]; let cc={}, cbytes=0;
+    for(const n of data.notes){
+      if(!n.text) continue;
+      const bytes = enc.encode(n.text).length;
+      if(cbytes + bytes > 2000000){ cshards.push(cc); cc={}; cbytes=0; }
+      cc[String(n.id)] = n.text; cbytes += bytes;
+    }
+    if(Object.keys(cc).length) cshards.push(cc);
+    b=writeBatch(db);
+    for(let i=0;i<cshards.length;i++){
+      const gz = await gzipStr(JSON.stringify(cshards[i]));
+      if(gz.length > 950000) throw new Error('本文データの分割サイズが大きすぎます');
+      b.set(doc(db,'corpusShards','c'+String(i).padStart(3,'0')), {n:i, gz:Bytes.fromUint8Array(gz)});
+      if((i+1)%5===0){ await b.commit(); b=writeBatch(db); }
+    }
+    await b.commit();
+    await setDoc(doc(db,'meta','corpus'),{version:ver, shards:cshards.length});
+    log(`本文検索データ ${cshards.length} シャード`);
+    prog(1);
+    log(`完了しました。インデックス ${shards.length} シャード`);
+    $('#cl').style.display='block';
+    $('#cl').onclick=()=>location.reload();
+  }catch(e){
+    log('エラー: '+e.message);
+    $('#cl').style.display='block';
+    $('#cl').onclick=()=>m.remove();
+  }
+}
+</script>
+</body>
+</html>
