@@ -147,6 +147,12 @@ a{color:var(--accent)}
 .srow.todo-row.warn b{color:var(--warn)}
 .stat{font-size:12px;color:var(--sub);margin:16px 0 4px;font-variant-numeric:tabular-nums}
 
+.meta-row{display:flex;align-items:center;gap:8px;margin-top:3px}
+.meta-row .meta{margin-top:0}
+.sortsel{margin-left:auto;border:1px solid var(--line);border-radius:5px;background:#fff;
+  padding:3px 6px;font-size:11.5px;color:var(--sub);outline:none;max-width:60%}
+.sortsel:hover{border-color:var(--accent);color:var(--accent)}
+.sortsel:focus{border-color:var(--accent)}
 .lsearch{position:relative;display:flex;align-items:center;background:#fafbfc;border:1px solid var(--line);
   border-radius:6px;padding:0 10px;height:34px;margin-bottom:11px}
 .lsearch:focus-within{border-color:var(--accent);background:#fff}
@@ -292,6 +298,11 @@ td.el{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 img.fprev{max-height:340px;object-fit:contain}
 iframe.fprev.pdf{height:420px}
 .modal .box.reg{width:520px}
+.astat{font-size:12.5px;color:var(--text);background:#fafbfc;border:1px solid var(--line);
+  border-radius:5px;padding:10px 13px;margin-bottom:9px;font-variant-numeric:tabular-nums}
+.astat b{font-size:14px}
+.astat .fn2{display:block;font-size:11px;color:#9aa3b2;margin-top:3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .adm{display:flex;flex-direction:column;gap:8px}
 .adm button{text-align:left;border:1px solid var(--line);border-radius:6px;padding:13px 15px;background:#fff}
 .adm button:hover{border-color:var(--accent);background:#fdfcfa}
@@ -425,6 +436,7 @@ const S = {
   folders:[], notes:[], corpus:null, mode:'work', folderId:null, noteId:null, open:{}, results:null, editing:false,
   // 共通
   members:[], myRole:'member', notifs:[], notifOpen:false, attIds:new Set(), homeQ:'', noteQ:'',
+  created:null, noteSort: localStorage.getItem('period_stock_notesort') || 'updated_desc',
   // 書類
   docs:[], docSort:{k:'issuedAt',d:-1}, docId:null, docEditing:false,
   dfil:{type:'',store:'',year:'',status:'',vendor:'',kw:''},
@@ -531,6 +543,8 @@ $('#admin').onclick = () => {
               いま開けるのは ${n}件です。</span></button>
       <button data-a="docs"><b>書類台帳の初期データを取り込む</b>
         <span>documents_seed.json.gz を読み込んで、台帳261件を一括登録します。</span></button>
+      <button data-a="created"><b>ノートの作成日を取り込む</b>
+        <span>並び替えの「作成日順」を正確にします。${S.created?'取り込み済み':'まだ取り込んでいません'}。</span></button>
       <button data-a="cache"><b>端末のキャッシュを消す</b>
         <span>表示がおかしいときに。次に開いたとき読み直します。</span></button>
     </div>
@@ -542,6 +556,7 @@ $('#admin').onclick = () => {
       const a=b.dataset.a; m.remove();
       if(a==='att')  importAttachments();
       if(a==='docs') importDocs();
+      if(a==='created') importCreated();
       if(a==='cache'){
         try{ indexedDB.deleteDatabase('period_knowledge'); }catch(e){}
         toast('キャッシュを消しました。画面を再読み込みします');
@@ -592,6 +607,7 @@ async function loadAll(){
   // 追加機能のデータは並行して読む
   loadMembers();
   loadAttIndex().then(()=>{ if(S.noteId) renderDetail(); });
+  loadCreated().then(()=>{ if(S.view==='knowledge' && /^created_/.test(S.noteSort)) renderList(); });
   Promise.all([syncDocs(), syncMinutes()]).then(()=>{
     buildNotifications();
     if(S.view==='home') renderHome();
@@ -892,6 +908,43 @@ function renderSidebar(){
     sb.appendChild(wrap);
   });
 }
+/* ---------- 並び替え ---------- */
+const NOTE_SORTS = [
+  ['updated_desc', '更新が新しい順'],
+  ['updated_asc',  '更新が古い順'],
+  ['created_desc', '作成が新しい順'],
+  ['created_asc',  '作成が古い順'],
+  ['title_asc',    'タイトル順（あ→ん）'],
+  ['title_desc',   'タイトル順（ん→あ）'],
+  ['author_asc',   '作成者順'],
+  ['att_desc',     '添付が多い順'],
+];
+// 作成日。索引には入っていないので、別に読み込んだ表を使う。
+// 無ければノートIDの順（Stockでは古いものほど番号が小さい）で代用する。
+function createdKey(n){
+  const c = (S.created && S.created[String(n.id)]) || n.createdAt;
+  if(c) return c;
+  const num = Number(String(n.id).replace(/\D/g,''));
+  return isNaN(num) ? '' : String(num).padStart(20,'0');
+}
+function sortNotes(rows){
+  const s = rows.slice();
+  const txt = (v)=>String(v||'');
+  const cmpJa = (a,b)=>txt(a).localeCompare(txt(b),'ja',{numeric:true});
+  const byUpdated = (a,b)=>txt(b.updatedAt).localeCompare(txt(a.updatedAt));
+  switch(S.noteSort){
+    case 'updated_asc':  s.sort((a,b)=>txt(a.updatedAt).localeCompare(txt(b.updatedAt))); break;
+    case 'created_desc': s.sort((a,b)=>txt(createdKey(b)).localeCompare(txt(createdKey(a)))); break;
+    case 'created_asc':  s.sort((a,b)=>txt(createdKey(a)).localeCompare(txt(createdKey(b)))); break;
+    case 'title_asc':    s.sort((a,b)=>cmpJa(a.title,b.title) || byUpdated(a,b)); break;
+    case 'title_desc':   s.sort((a,b)=>cmpJa(b.title,a.title) || byUpdated(a,b)); break;
+    case 'author_asc':   s.sort((a,b)=>cmpJa(a.author,b.author) || byUpdated(a,b)); break;
+    case 'att_desc':     s.sort((a,b)=>(b.att||0)-(a.att||0) || byUpdated(a,b)); break;
+    default:             s.sort(byUpdated);
+  }
+  return s;
+}
+
 function notesInMode(){
   if(S.mode==='arc') return S.notes.filter(n=>n.archived);
   if(S.mode==='daily') return S.notes.filter(n=>n.daily && !n.archived);
@@ -908,7 +961,7 @@ function renderList(){
     title = f ? f.name : ({work:'実務ノート',daily:'日報',arc:'アーカイブ'})[S.mode];
     sub = `${rows.length} 件`;
   }
-  rows = rows.slice().sort((a,b)=> (b.updatedAt||'').localeCompare(a.updatedAt||''));
+  rows = sortNotes(rows);
   const head = el('div','list-head');
   const sw=el('div','lsearch');
   sw.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="#9aa3b2" stroke-width="2">
@@ -922,7 +975,18 @@ function renderList(){
     }, 200); };
   sw.appendChild(si); head.appendChild(sw);
   head.appendChild(el('h2',null,esc(title)));
-  head.appendChild(el('div','meta',sub));
+
+  // 件数 ＋ 並び替え
+  const mrow = el('div','meta-row');
+  mrow.appendChild(el('div','meta',sub));
+  const sel = el('select','sortsel');
+  NOTE_SORTS.forEach(([k,label])=>{ const o=el('option',null,esc(label)); o.value=k; sel.appendChild(o); });
+  sel.value = S.noteSort;
+  sel.onchange = ()=>{ S.noteSort = sel.value;
+    localStorage.setItem('period_stock_notesort', sel.value); renderList(); };
+  mrow.appendChild(sel);
+  head.appendChild(mrow);
+
   if(S.folderId && !S.results){
     const b=el('button','newbtn','＋ 新規ノート'); b.onclick=newNote; head.appendChild(b);
   }
@@ -1316,6 +1380,49 @@ function pathId(p){
   return 'a' + a.toString(36) + b.toString(36);
 }
 
+/* ノートの作成日の表（並び替え用）。1ドキュメントに圧縮して入れてある。 */
+async function loadCreated(){
+  try{
+    const cached = await idbGet('note_created');
+    if(cached){ S.created = cached; return; }
+    const m = await getDoc(doc(db,'meta','noteCreated'));
+    if(!m.exists()) return;
+    S.created = JSON.parse(await ungzip(m.data().gz.toUint8Array()));
+    await idbSet('note_created', S.created);
+  }catch(e){}
+}
+async function importCreated(){
+  const m=el('div','modal');
+  m.innerHTML=`<div class="box"><h3>ノートの作成日を取り込む</h3>
+    <p>並び替えの「作成が新しい／古い順」を正確にするためのデータです。<br>
+       アプリ/note_created.json.gz を選んでください。1回だけで済みます。</p>
+    <input type="file" id="cimp" accept=".json,.gz" style="font-size:13px;padding:9px;border:1px solid var(--line);border-radius:4px;width:100%">
+    <div class="log" id="clg" style="display:none;margin-top:12px"></div>
+    <div class="row"><button id="ccl">閉じる</button></div></div>`;
+  document.body.appendChild(m);
+  m.querySelector('#ccl').onclick=()=>m.remove();
+  m.querySelector('#cimp').onchange = async e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const lg=m.querySelector('#clg'); lg.style.display='block';
+    const log=t=>{ lg.textContent+=t+'\n'; };
+    try{
+      let text;
+      if(f.name.endsWith('.gz'))
+        text = await new Response(f.stream().pipeThrough(new DecompressionStream('gzip'))).text();
+      else text = await f.text();
+      const map = JSON.parse(text);
+      log(`${Object.keys(map).length}件を読み込みました`);
+      const gz = await gzipStr(JSON.stringify(map));
+      if(gz.length > 950000) throw new Error('データが大きすぎます');
+      await setDoc(doc(db,'meta','noteCreated'), {gz:Bytes.fromUint8Array(gz), count:Object.keys(map).length});
+      S.created = map;
+      await idbSet('note_created', map);
+      log('保存しました。並び替えに使えるようになりました。');
+      setTimeout(()=>{ m.remove(); renderList(); toast('作成日を取り込みました'); }, 700);
+    }catch(err){ log('エラー: '+err.message); }
+  };
+}
+
 // 取り込み済みの一覧（どれがアプリで開けるか）。IDは1つ14文字ほどなので、
 // 1,000件でも15KB程度。1回の読み取りで済むように1ドキュメントにまとめて持つ。
 async function loadAttIndex(){
@@ -1358,19 +1465,43 @@ function importAttachments(){
     </div>
     <input type="file" id="apick" webkitdirectory directory multiple style="display:none">
     <div class="bar"><i id="apb"></i></div>
+    <div id="astat" class="astat" style="display:none"></div>
     <div class="log" id="alg" style="display:none"></div>
-    <div class="row"><button id="acl">閉じる</button></div></div>`;
+    <div class="row"><button id="astop" style="display:none">中断する</button>
+      <button id="acl">閉じる</button></div></div>`;
   document.body.appendChild(m);
   const $$ = s=>m.querySelector(s);
-  $$('#acl').onclick=()=>m.remove();
+  $$('#acl').onclick=()=>{ ATT_STOP=true; m.remove(); };
   $$('#adrop').onclick=()=>$$('#apick').click();
-  $$('#apick').onchange = e => runAttImport([...e.target.files], $$);
+  $$('#astop').onclick=()=>{ ATT_STOP=true; $$('#astop').textContent='止めています…'; };
+  $$('#apick').onchange = e => {
+    ATT_STOP=false;
+    $$('#adrop').style.display='none';
+    $$('#astop').style.display='inline-block';
+    runAttImport([...e.target.files], $$).finally(()=>{ $$('#astop').style.display='none'; });
+  };
 }
+let ATT_STOP = false;
+// ファイルの読み込みが固まったときのための時間制限
+async function withTimeout(promise, ms, msg){
+  let timer;
+  try{
+    return await Promise.race([promise,
+      new Promise((_,rej)=>{ timer=setTimeout(
+        ()=>rej(new Error(msg||`${ms/1000}秒以内に読めませんでした`)), ms); })]);
+  } finally { clearTimeout(timer); }
+}
+const hhmm = sec => sec<60 ? `${Math.round(sec)}秒`
+  : `${Math.floor(sec/60)}分${String(Math.round(sec%60)).padStart(2,'0')}秒`;
 
 async function runAttImport(files, $$){
   const lg=$$('#alg'); lg.style.display='block';
   const log = t => { lg.textContent += t+'\n'; lg.scrollTop=lg.scrollHeight; };
   const prog = p => $$('#apb').style.width = (p*100).toFixed(1)+'%';
+  const stEl = $$('#astat'); if(stEl) stEl.style.display='block';
+  const status = h => { if(stEl) stEl.innerHTML = h; };
+  // 画面を描き直す隙をつくる（つくらないと固まって見える）
+  const breathe = () => new Promise(r=>setTimeout(r, 0));
   try{
     // 先に「書き込めるか」を1件だけ試す。ルールが古いとここで分かる。
     try{
@@ -1404,6 +1535,10 @@ async function runAttImport(files, $$){
     log(`開ける形式のファイル ${targets.length}件`);
     log(`取り込み済み ${targets.length-todo.length}件 / これから ${todo.length}件（${totalMB.toFixed(0)}MB）`);
     if(!todo.length){ log('すべて取り込み済みです。'); prog(1); return; }
+    log(`小さいものから順に入れます。10件ごとに保存するので、`);
+    log(`途中で「中断する」を押しても、次回は続きから再開します。\n`);
+    // 小さいものを先に。早い段階で「進んでいる」ことが分かるようにする
+    todo.sort((a,b)=>a.f.size-b.f.size);
 
     let b = writeBatch(db), ops=0, bytes=0, okCount=0, ngCount=0;
     // 送信に失敗しても、書き込み枠は必ず新しいものに入れ替える
@@ -1420,8 +1555,24 @@ async function runAttImport(files, $$){
       S.attIds = new Set(ids);
     };
 
+    const T0 = Date.now();
+    const totalBytes = todo.reduce((s,t)=>s+t.f.size,0) || 1;
+    let doneBytes = 0;
+
     for(let i=0;i<todo.length;i++){
+      if(ATT_STOP){
+        log(`\n【中断しました】${okCount}件まで保存済みです。もう一度実行すれば続きから再開します。`);
+        await flush().catch(()=>{}); await saveIndex(); return;
+      }
       const {f, rel, id} = todo[i];
+      const el0 = (Date.now()-T0)/1000;
+      const rate = doneBytes / Math.max(el0, .001);
+      status(`<b>${i+1} / ${todo.length}件</b>　${(doneBytes/1048576).toFixed(0)} / ${(totalBytes/1048576).toFixed(0)}MB`
+        + `　経過 ${hhmm(el0)}`
+        + (doneBytes>3000000 ? `　残り およそ ${hhmm((totalBytes-doneBytes)/rate)}` : '')
+        + `<span class="fn2">${esc(f.name)}</span>`);
+      await breathe();
+      const tf = Date.now();
       try{
         const ext = (f.name.split('.').pop()||'').toLowerCase();
         let blob = f, type = MIME[ext] || f.type || 'application/octet-stream';
@@ -1429,7 +1580,9 @@ async function runAttImport(files, $$){
         if(/^image\//.test(type) && f.size > CHUNK){
           blob = await compressImage(f); type = 'image/jpeg';
         }
-        const u8 = new Uint8Array(await blob.arrayBuffer());
+        // Googleドライブの「オンラインのみ」ファイルは読むのに時間がかかることがある
+        const u8 = new Uint8Array(await withTimeout(blob.arrayBuffer(), 90000,
+          'ファイルを読めませんでした（Googleドライブの同期待ちかもしれません）'));
         const chunks = Math.max(1, Math.ceil(u8.length / CHUNK));
         for(let n=0;n<chunks;n++){
           const part = u8.subarray(n*CHUNK, Math.min(u8.length, (n+1)*CHUNK));
@@ -1441,9 +1594,11 @@ async function runAttImport(files, $$){
         b.set(doc(db,'attFiles',id), { name:f.name, type, size:u8.length, chunks, path:rel });
         ops++;
         if(ops>=100 || bytes > 4000000) await flush();
-        done.add(id); okCount++;
+        done.add(id); okCount++; doneBytes += f.size;
+        const sec = (Date.now()-tf)/1000;
+        if(sec > 5) log(`△ ${f.name.slice(0,30)}（${mb(f.size)}）に ${hhmm(sec)} かかりました`);
       }catch(err){
-        ngCount++;
+        ngCount++; doneBytes += f.size;
         const msg = String(err && err.message || err);
         log(`× ${f.name}：${msg}`);
         if(/permission|insufficient|PERMISSION_DENIED/i.test(msg)){
@@ -1456,11 +1611,11 @@ async function runAttImport(files, $$){
           await saveIndex(); return;
         }
       }
-      prog((i+1)/todo.length*0.97);
-      if((i+1)%20===0){
-        log(`${i+1} / ${todo.length}　（${f.name.slice(0,34)}）`);
+      prog(doneBytes/totalBytes*0.97);
+      if((i+1)%10===0){
         // 途中で閉じても続きから再開できるように、こまめに記録する
         try{ await flush(); await saveIndex(); }catch(e){}
+        log(`… ${i+1} / ${todo.length}件（${(doneBytes/1048576).toFixed(0)}MB）`);
       }
     }
     await flush();
@@ -1468,8 +1623,9 @@ async function runAttImport(files, $$){
     log('一覧を更新しています…');
     await saveIndex();
     prog(1);
+    status(`<b>完了しました</b>　${okCount}件・${(doneBytes/1048576).toFixed(0)}MB　（${hhmm((Date.now()-T0)/1000)}）`);
     log(`\n完了しました。取り込み ${okCount}件${ngCount?` / 失敗 ${ngCount}件`:''}`);
-    log(`アプリで開けるファイル 合計 ${ids.length}件`);
+    log(`アプリで開けるファイル 合計 ${S.attIds.size}件`);
     toast(`${okCount}件を取り込みました`);
     if(S.noteId) renderDetail();
   }catch(e){ log('エラー: '+e.message); }
