@@ -540,15 +540,12 @@ function doSearch(q){
 function offerImport(){
   $('#sidebar').innerHTML=''; $('#list').innerHTML='';
   $('#detail').innerHTML = `<div class="empty" style="padding-top:120px">
-    データがまだ入っていません。<br><br>
-    <button id="imp" class="newbtn" style="font-size:13px;padding:10px 22px">migration_data.json.gz を読み込む</button>
+    データがまだ入っていません。<br>
+    移行用ファイル（migration_data_v2.json.gz）を選んでください。<br><br>
+    <input type="file" id="impfile" accept=".gz,.json"
+      style="font-size:13px;padding:10px;border:1px solid var(--line);border-radius:4px;background:#fff">
   </div>`;
-  $('#imp').onclick = pickFile;
-}
-function pickFile(){
-  const inp=el('input'); inp.type='file'; inp.accept='.gz,.json';
-  inp.onchange=()=>{ if(inp.files[0]) runImport(inp.files[0]); };
-  inp.click();
+  $('#impfile').onchange = e => { const f=e.target.files[0]; if(f) runImport(f); };
 }
 async function runImport(file){
   const m=el('div','modal');
