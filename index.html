@@ -1372,6 +1372,24 @@ async function runAttImport(files, $$){
   const log = t => { lg.textContent += t+'\n'; lg.scrollTop=lg.scrollHeight; };
   const prog = p => $$('#apb').style.width = (p*100).toFixed(1)+'%';
   try{
+    // 先に「書き込めるか」を1件だけ試す。ルールが古いとここで分かる。
+    try{
+      await setDoc(doc(db,'attFiles','__preflight'), {t:nowISO()});
+      await deleteDoc(doc(db,'attFiles','__preflight'));
+    }catch(e){
+      log('【中断】Firestoreに書き込めませんでした。');
+      log('');
+      log('ルールがまだ古い可能性が高いです。次の手順で直してください：');
+      log('  1. https://console.firebase.google.com/project/period-knowledge/firestore/rules');
+      log('  2. アプリ/firestore.rules の中身を全部貼り付ける');
+      log('     （attFiles と attChunks の行が入っているもの）');
+      log('  3.「公開」を押す → 1分ほど待つ');
+      log('  4. この画面をリロードして、もう一度取り込む');
+      log('');
+      log('元のエラー: '+(e.message||e));
+      return;
+    }
+
     await loadAttIndex();
     const done = new Set(S.attIds);
     // 「添付ファイル/…」から始まる相対パスに揃える
@@ -1388,7 +1406,19 @@ async function runAttImport(files, $$){
     if(!todo.length){ log('すべて取り込み済みです。'); prog(1); return; }
 
     let b = writeBatch(db), ops=0, bytes=0, okCount=0, ngCount=0;
-    const flush = async ()=>{ if(ops){ await b.commit(); b=writeBatch(db); ops=0; bytes=0; } };
+    // 送信に失敗しても、書き込み枠は必ず新しいものに入れ替える
+    // （使い終わった枠を使い回すと、以降すべてエラーになるため）
+    const flush = async ()=>{
+      if(!ops) return;
+      const cur = b;
+      b = writeBatch(db); ops = 0; bytes = 0;
+      await cur.commit();
+    };
+    const saveIndex = async ()=>{
+      const ids=[...done];
+      await setDoc(doc(db,'meta','attIndex'), { version:Date.now(), count:ids.length, ids });
+      S.attIds = new Set(ids);
+    };
 
     for(let i=0;i<todo.length;i++){
       const {f, rel, id} = todo[i];
@@ -1406,22 +1436,37 @@ async function runAttImport(files, $$){
           b.set(doc(db,'attChunks', `${id}_${String(n).padStart(3,'0')}`),
                 { b: Bytes.fromUint8Array(part) });
           ops++; bytes += part.length;
-          if(ops>=400 || bytes > 7000000) await flush();
+          if(ops>=100 || bytes > 4000000) await flush();
         }
         b.set(doc(db,'attFiles',id), { name:f.name, type, size:u8.length, chunks, path:rel });
         ops++;
-        if(ops>=400 || bytes > 7000000) await flush();
+        if(ops>=100 || bytes > 4000000) await flush();
         done.add(id); okCount++;
-      }catch(err){ ngCount++; log(`× ${f.name}：${err.message}`); }
+      }catch(err){
+        ngCount++;
+        const msg = String(err && err.message || err);
+        log(`× ${f.name}：${msg}`);
+        if(/permission|insufficient|PERMISSION_DENIED/i.test(msg)){
+          log('\n【中断】書き込みを拒否されました。Firestoreのルールを貼り直してから、もう一度お試しください。');
+          await saveIndex(); return;
+        }
+        if(ngCount >= 10){
+          log(`\n【中断】失敗が ${ngCount}件 続いたので止めました。`);
+          log('ここまでのぶんは保存しました。原因を直してから、もう一度実行すれば続きから再開します。');
+          await saveIndex(); return;
+        }
+      }
       prog((i+1)/todo.length*0.97);
-      if((i+1)%20===0) log(`${i+1} / ${todo.length}　（${f.name.slice(0,34)}）`);
+      if((i+1)%20===0){
+        log(`${i+1} / ${todo.length}　（${f.name.slice(0,34)}）`);
+        // 途中で閉じても続きから再開できるように、こまめに記録する
+        try{ await flush(); await saveIndex(); }catch(e){}
+      }
     }
     await flush();
 
     log('一覧を更新しています…');
-    const ids=[...done];
-    await setDoc(doc(db,'meta','attIndex'), { version:Date.now(), count:ids.length, ids });
-    S.attIds = new Set(ids);
+    await saveIndex();
     prog(1);
     log(`\n完了しました。取り込み ${okCount}件${ngCount?` / 失敗 ${ngCount}件`:''}`);
     log(`アプリで開けるファイル 合計 ${ids.length}件`);
