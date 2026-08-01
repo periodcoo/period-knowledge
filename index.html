@@ -303,6 +303,18 @@ iframe.fprev.pdf{height:420px}
 .astat b{font-size:14px}
 .astat .fn2{display:block;font-size:11px;color:#9aa3b2;margin-top:3px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clsec{border:1px solid var(--line);border-radius:7px;padding:14px 16px;margin-bottom:10px;background:#fff}
+.clh{display:flex;align-items:center;gap:9px}
+.clh b{font-size:13.5px}
+.clh .n{margin-left:auto;font-size:12px;color:var(--accent);font-weight:600}
+.cld{font-size:11.5px;color:var(--sub);line-height:1.65;margin-top:4px}
+.cls{background:#fafbfc;border-radius:5px;padding:9px 11px;margin:10px 0;font-size:11.5px;
+  color:var(--text);max-height:130px;overflow:auto;line-height:1.7}
+.cls div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clu{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f2f4f7;font-size:12px}
+.clu .d{font-size:11px;color:#9aa3b2;margin-left:auto;white-space:nowrap}
+.tag.click{cursor:pointer}
+.tag.click:hover{border-color:var(--accent);color:var(--accent)}
 .adm{display:flex;flex-direction:column;gap:8px}
 .adm button{text-align:left;border:1px solid var(--line);border-radius:6px;padding:13px 15px;background:#fff}
 .adm button:hover{border-color:var(--accent);background:#fdfcfa}
@@ -436,7 +448,7 @@ const S = {
   folders:[], notes:[], corpus:null, mode:'work', folderId:null, noteId:null, open:{}, results:null, editing:false,
   // 共通
   members:[], myRole:'member', notifs:[], notifOpen:false, attIds:new Set(), homeQ:'', noteQ:'',
-  created:null, noteSort: localStorage.getItem('period_stock_notesort') || 'updated_desc',
+  created:null, tags:null, noteSort: localStorage.getItem('period_stock_notesort') || 'updated_desc',
   // 書類
   docs:[], docSort:{k:'issuedAt',d:-1}, docId:null, docEditing:false,
   dfil:{type:'',store:'',year:'',status:'',vendor:'',kw:''},
@@ -538,6 +550,9 @@ $('#admin').onclick = () => {
     <h3>管理</h3>
     <p>データの取り込みなど、ふだんは使わない操作です。</p>
     <div class="adm">
+      <button data-a="clean"><b>中身を整理する</b>
+        <span>重複コピーのアーカイブ、日付だけのタイトルに年を足す、タグ付け。
+              何も消しません。実行前に確認でき、あとから取り消せます。</span></button>
       <button data-a="att"><b>過去の添付ファイルを取り込む</b>
         <span>Googleドライブにある請求書PDFなどを、アプリの中で直接開けるようにします。
               いま開けるのは ${n}件です。</span></button>
@@ -554,6 +569,7 @@ $('#admin').onclick = () => {
   m.querySelectorAll('.adm button').forEach(b=>{
     b.onclick=async()=>{
       const a=b.dataset.a; m.remove();
+      if(a==='clean') openCleanup();
       if(a==='att')  importAttachments();
       if(a==='docs') importDocs();
       if(a==='created') importCreated();
@@ -608,6 +624,7 @@ async function loadAll(){
   loadMembers();
   loadAttIndex().then(()=>{ if(S.noteId) renderDetail(); });
   loadCreated().then(()=>{ if(S.view==='knowledge' && /^created_/.test(S.noteSort)) renderList(); });
+  loadTags().then(()=>{ if(S.view==='knowledge') renderList(); });
   Promise.all([syncDocs(), syncMinutes()]).then(()=>{
     buildNotifications();
     if(S.view==='home') renderHome();
@@ -756,7 +773,7 @@ function globalSearch(q){
   });
   const C=S.corpus;
   S.notes.forEach(n=>{
-    if(hit(`${n.title||''} ${n.folder||''} ${n.preview||''} ${(C&&C[String(n.id)])||''}`))
+    if(hit(`${n.title||''} ${n.folder||''} ${n.preview||''} ${tagsOf(n).join(' ')} ${(C&&C[String(n.id)])||''}`))
       out.push({kind:'note', id:n.id, title:n.title||'(無題)',
         sub:`${n.folder||''}${n.att?`・添付${n.att}`:''}`, at:(n.updatedAt||'').slice(0,10)});
   });
@@ -999,6 +1016,7 @@ function renderList(){
       <div class="foot"><span>${esc(n.author||'')}</span><span>${fmt(n.updatedAt)}</span>
       ${n.att?`<span class="badge">添付 ${n.att}</span>`:''}
       ${n.archived?'<span class="badge arc">アーカイブ</span>':''}
+      ${tagsOf(n).slice(0,2).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}
       ${S.results?`<span style="margin-left:auto">${esc(n.folder||'')}</span>`:''}</div>`;
     it.onclick=()=>{ S.noteId=n.id; S.editing=false; renderList(); renderDetail(); };
     box.appendChild(it);
@@ -1023,7 +1041,8 @@ async function renderDetail(){
   head.appendChild(el('div','detail-meta',
     `<span>${esc(n.folder||'')}</span><span>作成 ${esc(n.author||'')} / ${fmt(n.createdAt)}</span>
      <span>更新 ${esc(n.editor||'')} / ${fmt(n.updatedAt)}</span>
-     ${(n.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join(' ')}`));
+     ${[...new Set([...(n.tags||[]), ...tagsOf({id:n.id})])].map(t=>
+        `<span class="tag click" data-tag="${esc(t)}">${esc(t)}</span>`).join(' ')}`));
   const tools=el('div','tools');
   if(ed){
     [['太字','bold'],['斜体','italic'],['下線','underline'],['箇条書き','insertUnorderedList'],
@@ -1045,6 +1064,9 @@ async function renderDetail(){
     a1.onclick=()=>toggleArchive(n); tools.appendChild(a1);
     const d1=el('button',null,'削除'); d1.onclick=()=>removeNote(n); tools.appendChild(d1);
   }
+  head.querySelectorAll('.tag.click').forEach(t=>{
+    t.onclick=()=>{ S.noteQ=t.dataset.tag; S.results=null; doSearch(t.dataset.tag); };
+  });
   head.appendChild(tools);
   D.appendChild(head);
   const body=el('div','body'); body.id='b-edit';
@@ -1148,6 +1170,7 @@ function doSearch(q){
   const C = S.corpus;
   const hits = S.notes.filter(n=>{
     const hay = ((n.title||'')+' '+(n.folder||'')+' '+(n.preview||'')+' '
+      +tagsOf(n).join(' ')+' '
       +((C && C[String(n.id)]) || n.text || '')).toLowerCase();
     return keys.every(k=>hay.includes(k));
   });
@@ -1355,6 +1378,299 @@ async function loadDocFile(docId){
   const out = { url, type:v.type, name:v.name, size:v.size };
   fileCache.set(docId, out);
   return out;
+}
+
+/* ============================================================
+   中身の整理
+   ─────────────────────────────────────────────
+   方針：ノートも本文も、ひとつも消さない。
+   やるのは「アーカイブに移す」「タイトルに年を足す」「タグを付ける」だけ。
+   実行前に何が変わるか全部見せて、実行後は取り消せるようにする。
+   ============================================================ */
+
+/* --- タグの判定ルール --- */
+const TAG_RULES = [
+  ['請求書',   /請求書|ご請求|御請求/],
+  ['領収書',   /領収書|領収証|レシート/],
+  ['見積書',   /見積書|御見積|お見積/],
+  ['納品書',   /納品書|納品明細/],
+  ['議事録',   /議事録|MTG|ミーティング|打ち合わせ|打合せ|会議/i],
+  ['日報',     /日報|日誌/],
+  ['マニュアル', /マニュアル|手順|やり方|使い方|ルール|規定/],
+  ['契約',     /契約書|申込書|覚書|規約/],
+  ['採用・教育', /採用|面接|新人教育|研修|チャレンジシート|評価/],
+  ['経理',     /精算|振込|支払|入金|小口|タイムシート|給与|PL|決算/],
+  ['発注・在庫', /発注|注文|在庫|物販|オーダー|仕入/],
+  ['告知・販促', /キャンペーン|告知|チラシ|POP|SNS|広告|イベント/i],
+];
+function guessTags(n, text){
+  const hay = `${n.title||''} ${n.folder||''} ${(text||'').slice(0,1200)}`;
+  const out=[];
+  for(const [tag, re] of TAG_RULES){
+    if(re.test(hay)) out.push(tag);
+    if(out.length>=3) break;
+  }
+  return out;
+}
+
+/* --- 日付だけのタイトルを見つける --- */
+const DATE_TITLE = /^\s*(\d{1,2})\s*[\/\.\-月]\s*(\d{1,2})\s*日?\s*(?:[（(][^）)]{0,4}[）)])?\s*$/;
+function dailyTitleFix(n){
+  const t = String(n.title||'');
+  if(/(19|20)\d{2}/.test(t)) return null;           // すでに年が入っている
+  const m = DATE_TITLE.exec(t);
+  if(!m) return null;
+  const mo = Number(m[1]), da = Number(m[2]);
+  if(!(mo>=1 && mo<=12 && da>=1 && da<=31)) return null;
+  const key = createdKey(n);
+  const y = /^(19|20)\d{2}/.test(key) ? key.slice(0,4) : null;
+  if(!y) return null;
+  return `${y}/${mo}/${da}`;
+}
+
+/* --- 何が直せるか調べる（書き込みはしない） --- */
+function analyzeCleanup(){
+  const textOf = n => (S.corpus && S.corpus[String(n.id)]) || n.preview || '';
+
+  // 1) 「〜のコピー」フォルダの中で、本体と中身が完全に同じもの
+  const byFolder = {};
+  S.notes.forEach(n=>{ (byFolder[n.folder]=byFolder[n.folder]||[]).push(n); });
+  const dupes=[];
+  Object.keys(byFolder).forEach(name=>{
+    if(!/のコピー\s*$/.test(name)) return;
+    const orig = byFolder[name.replace(/のコピー\s*$/,'')];
+    if(!orig) return;
+    const sig = n => `${n.title} ${textOf(n)}`;
+    const origSet = new Set(orig.map(sig));
+    byFolder[name].forEach(n=>{
+      if(!n.archived && origSet.has(sig(n))) dupes.push(n);
+    });
+  });
+
+  // 2) 日付だけのタイトル
+  const titles=[];
+  S.notes.forEach(n=>{
+    const t = dailyTitleFix(n);
+    if(t && t!==n.title) titles.push({n, to:t});
+  });
+
+  // 3) タグ
+  const tags=[]; const tagCount={};
+  S.notes.forEach(n=>{
+    const now = (S.tags && S.tags[String(n.id)]) || [];
+    const t = guessTags(n, textOf(n));
+    if(t.length && t.join(',')!==now.join(',')){
+      tags.push({n, to:t});
+      t.forEach(x=>tagCount[x]=(tagCount[x]||0)+1);
+    }
+  });
+
+  return {dupes, titles, tags, tagCount};
+}
+
+/* --- 一覧インデックスを作り直す（タイトル変更を全員に反映するため） --- */
+async function rebuildIndex(log){
+  log && log('一覧インデックスを作り直しています…');
+  const idx = S.notes.map(n=>({id:String(n.id), folderId:String(n.folderId), folder:n.folder,
+    title:n.title, preview:n.preview, updatedAt:n.updatedAt, author:n.author,
+    archived:!!n.archived, daily:!!n.daily, att:n.att||0}));
+  const shards=[]; let cur=[], size=0;
+  for(const r of idx){
+    const s=JSON.stringify(r).length;
+    if(size+s > 900000){ shards.push(cur); cur=[]; size=0; }
+    cur.push(r); size+=s;
+  }
+  if(cur.length) shards.push(cur);
+  let b=writeBatch(db);
+  for(let i=0;i<shards.length;i++){
+    const gz = await gzipStr(JSON.stringify(shards[i]));
+    b.set(doc(db,'indexShards','s'+String(i).padStart(3,'0')), {n:i, gz:Bytes.fromUint8Array(gz)});
+    if((i+1)%5===0){ await b.commit(); b=writeBatch(db); }
+  }
+  await b.commit();
+  const ver=Date.now();
+  await setDoc(doc(db,'meta','index'),{version:ver, count:idx.length, builtAt:nowISO()});
+  await idbSet('idx_'+ver, S.notes);
+  log && log(`インデックスを更新しました（${shards.length}分割）`);
+}
+
+/* --- 取り消し用の記録 --- */
+async function saveUndo(kind, label, items){
+  const id = 'u'+Date.now();
+  const gz = await gzipStr(JSON.stringify(items));
+  await setDoc(doc(db,'cleanupLog',id),
+    { id, kind, label, count:items.length, by:ME.name, at:nowISO(), gz:Bytes.fromUint8Array(gz) });
+  return id;
+}
+async function listUndo(){
+  try{
+    const s = await getDocs(query(collection(db,'cleanupLog'), limit(30)));
+    return s.docs.map(d=>({id:d.id, ...d.data()})).filter(r=>!r.undone)
+      .sort((a,b)=>(b.at||'').localeCompare(a.at||''));
+  }catch(e){ return []; }
+}
+
+/* --- タグの表（1ドキュメントにまとめて持つ） --- */
+async function loadTags(){
+  try{
+    const cached = await idbGet('note_tags');
+    if(cached){ S.tags = cached; return; }
+    const m = await getDoc(doc(db,'meta','noteTags'));
+    if(!m.exists()) return;
+    S.tags = JSON.parse(await ungzip(m.data().gz.toUint8Array()));
+    await idbSet('note_tags', S.tags);
+  }catch(e){}
+}
+async function saveTags(map){
+  const gz = await gzipStr(JSON.stringify(map));
+  if(gz.length > 950000) throw new Error('タグのデータが大きすぎます');
+  await setDoc(doc(db,'meta','noteTags'), {gz:Bytes.fromUint8Array(gz), count:Object.keys(map).length,
+    at:nowISO(), by:ME.name});
+  S.tags = map;
+  await idbSet('note_tags', map);
+}
+const tagsOf = n => (S.tags && S.tags[String(n.id)]) || n.tags || [];
+
+/* --- 整理の画面 --- */
+async function openCleanup(){
+  const m=el('div','modal');
+  m.innerHTML=`<div class="box" style="width:700px">
+    <h3>中身を整理する</h3>
+    <p><b>ノートも本文も、ひとつも消しません。</b>やるのは「アーカイブに移す」「タイトルに年を足す」
+       「タグを付ける」の3つだけです。実行したあとに取り消せます。</p>
+    <div id="cl-body"><div class="empty"><span class="spin"></span> 調べています</div></div>
+    <div class="log" id="cl-log" style="display:none;margin-top:12px"></div>
+    <div class="row"><button id="cl-close">閉じる</button></div></div>`;
+  document.body.appendChild(m);
+  const $$ = s=>m.querySelector(s);
+  $$('#cl-close').onclick=()=>{ m.remove(); renderSidebar(); renderList(); };
+  const lg=$$('#cl-log');
+  const log=t=>{ lg.style.display='block'; lg.textContent+=t+'\n'; lg.scrollTop=lg.scrollHeight; };
+
+  // 本文検索データがまだなら待つ（重複判定に使う）
+  if(!S.corpus) await loadCorpus();
+  await new Promise(r=>setTimeout(r,0));
+
+  const draw = async ()=>{
+    const a = analyzeCleanup();
+    const undos = await listUndo();
+    const B = $$('#cl-body'); B.innerHTML='';
+
+    const section = (title, count, desc, sample, onRun) => {
+      const s=el('div','clsec');
+      s.innerHTML=`<div class="clh"><b>${esc(title)}</b>
+        <span class="n">${count?count+'件':'なし'}</span></div>
+        <div class="cld">${desc}</div>`;
+      if(count){
+        if(sample) s.appendChild(el('div','cls', sample));
+        const b=el('button','btn primary sm','この整理を実行する');
+        b.onclick=async()=>{ b.disabled=true; b.textContent='実行中…';
+          try{ await onRun(log); }catch(e){ log('エラー: '+e.message); }
+          await draw(); };
+        s.appendChild(b);
+      }
+      B.appendChild(s);
+    };
+
+    /* 1. 重複コピー */
+    section('重複したコピーをアーカイブに移す', a.dupes.length,
+      '本体と中身が1文字も違わないノートだけが対象です。アーカイブに移るだけで、いつでも戻せます。',
+      a.dupes.slice(0,5).map(n=>`<div>${esc(n.folder)} / ${esc(n.title)}</div>`).join('')
+        + (a.dupes.length>5?`<div style="color:#9aa3b2">ほか ${a.dupes.length-5}件</div>`:''),
+      async (log)=>{
+        const items = a.dupes.map(n=>({id:String(n.id), before:{archived:!!n.archived}, after:{archived:true}}));
+        await saveUndo('archive', `重複コピー ${items.length}件をアーカイブ`, items);
+        let b=writeBatch(db), c=0;
+        for(const n of a.dupes){
+          b.set(doc(db,'notes',String(n.id)), {archived:true, updatedAt:nowISO()}, {merge:true});
+          n.archived = true;
+          if(++c%300===0){ await b.commit(); b=writeBatch(db); }
+        }
+        await b.commit();
+        log(`${items.length}件をアーカイブに移しました`);
+        await rebuildIndex(log);
+        toast(`${items.length}件をアーカイブしました`);
+      });
+
+    /* 2. 日報のタイトル */
+    section('日付だけのタイトルに年を足す', a.titles.length,
+      '「7/27」のような日付だけのタイトルに、作成した年を足します。同じ名前が並ぶのを解消し、検索でも見分けられるようになります。',
+      a.titles.slice(0,5).map(x=>`<div>${esc(x.n.folder)} / ${esc(x.n.title)}　→　<b>${esc(x.to)}</b></div>`).join('')
+        + (a.titles.length>5?`<div style="color:#9aa3b2">ほか ${a.titles.length-5}件</div>`:''),
+      async (log)=>{
+        const items = a.titles.map(x=>({id:String(x.n.id), before:{title:x.n.title}, after:{title:x.to}}));
+        await saveUndo('title', `タイトルに年を追加 ${items.length}件`, items);
+        let b=writeBatch(db), c=0;
+        for(let i=0;i<a.titles.length;i++){
+          const x=a.titles[i];
+          b.set(doc(db,'notes',String(x.n.id)), {title:x.to, updatedAt:nowISO()}, {merge:true});
+          x.n.title = x.to;
+          if(++c%300===0){ await b.commit(); b=writeBatch(db); log(`${i+1} / ${a.titles.length}`); }
+        }
+        await b.commit();
+        log(`${items.length}件のタイトルを直しました`);
+        await rebuildIndex(log);
+        toast(`${items.length}件のタイトルを直しました`);
+      });
+
+    /* 3. タグ */
+    const tagTop = Object.entries(a.tagCount).sort((x,y)=>y[1]-x[1]).slice(0,12);
+    section('タグを自動で付ける', a.tags.length,
+      'ノートの中身とフォルダ名から、内容に合ったタグを付けます。ノートは書き換えません（タグは別に保存します）。検索でタグ名を打つと絞り込めます。',
+      tagTop.length ? `<div>${tagTop.map(([t,c])=>`<span class="tag">${esc(t)} ${c}</span>`).join(' ')}</div>` : '',
+      async (log)=>{
+        const before = JSON.parse(JSON.stringify(S.tags||{}));
+        const map = Object.assign({}, S.tags||{});
+        a.tags.forEach(x=>{ map[String(x.n.id)] = x.to; });
+        await saveUndo('tags', `タグを付与 ${a.tags.length}件`, [{id:'__all', before, after:map}]);
+        await saveTags(map);
+        log(`${a.tags.length}件にタグを付けました`);
+        toast(`${a.tags.length}件にタグを付けました`);
+      });
+
+    /* 取り消し */
+    if(undos.length){
+      const s=el('div','clsec');
+      s.innerHTML=`<div class="clh"><b>実行した整理</b><span class="n">${undos.length}件</span></div>
+        <div class="cld">押すと元に戻せます。</div>`;
+      undos.forEach(u=>{
+        const r=el('div','clu');
+        r.innerHTML=`<span>${esc(u.label)}</span><span class="d">${fmtT(u.at)}　${esc(u.by||'')}</span>`;
+        const b=el('button','btn sm','取り消す');
+        b.onclick=async()=>{
+          if(!confirm(`「${u.label}」を取り消します。よろしいですか？`)) return;
+          b.disabled=true; b.textContent='戻しています…';
+          try{
+            const items = JSON.parse(await ungzip(u.gz.toUint8Array()));
+            if(u.kind==='tags'){
+              await saveTags(items[0].before);
+            }else{
+              let bt=writeBatch(db), c=0;
+              for(const it of items){
+                bt.set(doc(db,'notes',it.id), {...it.before, updatedAt:nowISO()}, {merge:true});
+                const n=S.notes.find(x=>String(x.id)===it.id);
+                if(n) Object.assign(n, it.before);
+                if(++c%300===0){ await bt.commit(); bt=writeBatch(db); }
+              }
+              await bt.commit();
+              await rebuildIndex(log);
+            }
+            await setDoc(doc(db,'cleanupLog',u.id), {undone:true, undoneAt:nowISO()}, {merge:true});
+            log(`「${u.label}」を取り消しました`);
+            toast('取り消しました');
+          }catch(e){ log('エラー: '+e.message); }
+          await draw();
+        };
+        r.appendChild(b); s.appendChild(r);
+      });
+      B.appendChild(s);
+    }
+
+    if(!a.dupes.length && !a.titles.length && !a.tags.length && !undos.length){
+      B.innerHTML = '<div class="empty">整理するところは見つかりませんでした。きれいな状態です。</div>';
+    }
+  };
+  await draw();
 }
 
 /* ============================================================
