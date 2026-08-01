@@ -123,6 +123,36 @@ a{color:var(--accent)}
 .empty{padding:70px 40px;text-align:center;color:#9aa3b2;font-size:13px}
 
 /* ---------- 共通パーツ ---------- */
+/* ---------- ホーム ---------- */
+.page-w.home{max-width:760px;padding-top:26px}
+.hsearch{position:relative;display:flex;align-items:center;background:#fff;border:1px solid var(--line);
+  border-radius:9px;padding:0 16px;height:52px;box-shadow:0 1px 3px rgba(20,27,45,.04);transition:border-color .15s}
+.hsearch:focus-within{border-color:var(--accent);box-shadow:0 2px 10px rgba(138,109,59,.1)}
+.hsearch svg{width:18px;height:18px;flex:none}
+.hsearch input{flex:1;border:none;outline:none;background:none;font-size:15px;padding:0 12px}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.quick button{background:#fff;border:1px solid var(--line);border-radius:8px;padding:15px 17px;text-align:left}
+.quick button:hover{border-color:var(--accent);background:#fdfcfa}
+.quick button b{display:block;font-size:13.5px;font-weight:600}
+.quick button span{display:block;font-size:11.5px;color:var(--sub);margin-top:2px}
+.listbox{background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.srow{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid #f2f4f7;cursor:pointer}
+.srow:last-child{border-bottom:none}
+.srow:hover{background:#fafbfc}
+.srow b{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:none;max-width:52%}
+.srow .s{font-size:11.5px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.srow .d{font-size:11px;color:#b6bdc9;white-space:nowrap;margin-left:auto}
+.srow.todo-row b{max-width:none;flex:none}
+.srow.todo-row.alert b{color:var(--danger)}
+.srow.todo-row.warn b{color:var(--warn)}
+.stat{font-size:12px;color:var(--sub);margin:16px 0 4px;font-variant-numeric:tabular-nums}
+
+.lsearch{position:relative;display:flex;align-items:center;background:#fafbfc;border:1px solid var(--line);
+  border-radius:6px;padding:0 10px;height:34px;margin-bottom:11px}
+.lsearch:focus-within{border-color:var(--accent);background:#fff}
+.lsearch svg{width:14px;height:14px;flex:none}
+.lsearch input{flex:1;border:none;outline:none;background:none;font-size:12.5px;padding:0 8px}
+
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(184px,1fr));gap:12px;margin:18px 0 22px}
 .card{background:#fff;border:1px solid var(--line);border-radius:6px;padding:15px 17px}
 .card .lb{font-size:11px;color:var(--sub);letter-spacing:.04em}
@@ -155,6 +185,7 @@ table.tbl tr{cursor:pointer}
 td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 td.el{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pill{display:inline-block;font-size:10.5px;border-radius:10px;padding:1px 9px;white-space:nowrap;border:1px solid transparent}
+.pill.pending{background:#fdf4e8;color:#8a5a12;border-color:#ebd9bb;font-weight:600}
 .pill.unpaid{background:#fdf3f2;color:var(--danger);border-color:#eed6d2}
 .pill.paid{background:#eef4f0;color:var(--ok);border-color:#d3e3da}
 .pill.checked{background:#eef1f6;color:#41506e;border-color:#d8dfea}
@@ -246,7 +277,79 @@ td.el{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .spin{display:inline-block;width:13px;height:13px;border:2px solid var(--line);border-top-color:var(--accent);
   border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
 @keyframes sp{to{transform:rotate(360deg)}}
+
+/* ---------- 添付・アップロード ---------- */
+.drop{border:2px dashed var(--line);border-radius:8px;background:#fbfcfd;cursor:pointer;
+  padding:26px 18px;text-align:center;transition:border-color .15s,background .15s}
+.drop:hover,.drop.over{border-color:var(--accent);background:#fdfbf6}
+.drop.sm{padding:18px 14px}
+.drop .ph{display:flex;flex-direction:column;align-items:center;gap:5px}
+.drop .ph b{font-size:13px;font-weight:600}
+.drop .ph span{font-size:11.5px;color:#9aa3b2}
+.drop .fn{font-size:11.5px;color:var(--sub);margin-top:9px;word-break:break-all}
+.drop img{max-width:100%;max-height:200px;border-radius:5px;display:block;margin:0 auto}
+.fprev{width:100%;border:1px solid var(--line);border-radius:6px;display:block;background:#fafbfc}
+img.fprev{max-height:340px;object-fit:contain}
+iframe.fprev.pdf{height:420px}
+.modal .box.reg{width:520px}
+.adm{display:flex;flex-direction:column;gap:8px}
+.adm button{text-align:left;border:1px solid var(--line);border-radius:6px;padding:13px 15px;background:#fff}
+.adm button:hover{border-color:var(--accent);background:#fdfcfa}
+.adm button b{display:block;font-size:13px;font-weight:600}
+.adm button span{display:block;font-size:11.5px;color:var(--sub);margin-top:3px;line-height:1.6}
+
+.banner{background:#fdf8ec;border:1px solid #ecdcbb;border-radius:6px;padding:14px 18px;margin-top:16px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.banner b{font-size:13.5px;color:#8a5a12}
+.banner span{font-size:12px;color:var(--sub);flex:1;min-width:180px}
+.approve{background:#fdf8ec;border:1px solid #ecdcbb;border-radius:6px;padding:15px 17px;margin-bottom:20px}
+.approve b{font-size:13.5px;color:#8a5a12;display:block}
+.approve span{font-size:12px;color:var(--sub);display:block;margin-top:3px;line-height:1.6}
+
 @media(max-width:1100px){#view-knowledge.on{grid-template-columns:210px 300px 1fr}.nav button{padding:7px 10px}}
+
+/* ---------- スマホ ---------- */
+@media(max-width:760px){
+  body{font-size:15px}
+  .topbar{height:auto;flex-wrap:wrap;padding:10px 14px;gap:10px}
+  .brand{font-size:14px;order:1}
+  .who{order:2;margin-left:auto}
+  .nav{order:3;width:100%;overflow-x:auto;margin-left:0;gap:4px;-webkit-overflow-scrolling:touch}
+  .nav button{flex:none;padding:7px 12px;font-size:12.5px}
+  .search-wrap{order:4;width:100%;max-width:none}
+  .search-wrap.hide{display:none}
+  #view-knowledge.on{grid-template-columns:1fr;grid-template-rows:auto auto 1fr}
+  #sidebar{max-height:190px}
+  #list{max-height:44vh;border-right:none;border-bottom:1px solid var(--line)}
+  .page{padding:18px 14px 70px}
+  .cards{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px}
+  .card .vl{font-size:20px}
+  .page h1{font-size:17px}
+  .quick{grid-template-columns:1fr}
+  .srow{flex-wrap:wrap;gap:6px 10px}
+  .srow b{max-width:100%;width:100%}
+  .srow .d{margin-left:0}
+  .hsearch input{font-size:16px}
+  .filters select,.filters input{font-size:15px;padding:8px 9px}
+  .filters input.kw{min-width:0;flex:1}
+  .page > .page-w > div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
+  table.tbl th:nth-child(5),table.tbl td:nth-child(5),
+  table.tbl th:nth-child(9),table.tbl td:nth-child(9){display:none}
+  table.tbl td,table.tbl th{padding:8px 8px;font-size:12px}
+  .drawer{width:100vw}
+  .drawer .dh{padding:16px 18px 12px}
+  .drawer .db{padding:16px 18px 60px}
+  .fgrid{grid-template-columns:1fr;gap:4px 0}
+  .fgrid label{margin-top:9px}
+  .fgrid input,.fgrid select,.fgrid textarea{font-size:16px;padding:9px 10px}
+  .modal .box,.modal .box.reg{width:100%;max-width:100%;height:100%;max-height:100%;border-radius:0;padding:22px 18px 40px}
+  .modal .row{position:sticky;bottom:0;background:#fff;padding-top:12px}
+  .modal .row button{flex:1;padding:12px 10px}
+  .notif-panel{width:calc(100vw - 20px);right:10px}
+  .detail-head,.body{padding-left:18px;padding-right:18px}
+  .attach{margin-left:18px;margin-right:18px}
+  iframe.fprev.pdf{height:300px}
+}
 </style>
 </head>
 <body>
@@ -257,11 +360,6 @@ td.el{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   <div class="topbar">
     <div class="brand">PERIOD.<span>stock</span></div>
     <div class="nav" id="nav"></div>
-    <div class="search-wrap" id="searchWrap">
-      <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
-        <circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
-      <input id="q" placeholder="キーワードで検索（本文まで対象）" autocomplete="off">
-    </div>
     <div class="who">
       <button class="bell" id="bell" title="通知">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#cfd6e3" stroke-width="1.8"
@@ -269,7 +367,7 @@ td.el{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
           <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
         <span class="dot" id="bdot" style="display:none">0</span>
       </button>
-      <span id="whoami"></span><button id="signout">ログアウト</button>
+      <span id="whoami"></span><button id="admin">管理</button><button id="signout">ログアウト</button>
     </div>
   </div>
 
@@ -317,14 +415,16 @@ let fb=null, db=null, auth=null, ME=null;
 
 const STORES  = ["本部","Li'l Fit","ULuLu","NIRAM","it's Time coffee","Fitness","Beauty","CAFE","経理","その他"];
 const DTYPES  = ["請求書","納品書","領収書","見積書","発注書","契約書","その他"];
-const DSTATUS = { unpaid:'未払い', paid:'支払済', checked:'確認済', hold:'保留' };
+// 流れ： 確認待ち（店舗が登録）→ 未払い（経理が確認）→ 支払済
+const DSTATUS = { pending:'確認待ち', unpaid:'未払い', paid:'支払済', hold:'保留', checked:'確認済' };
+const isAccounting = () => ['accounting','admin'].includes((S.myRole||'').toLowerCase());
 
 const S = {
   view:'home',
   // ナレッジ
   folders:[], notes:[], corpus:null, mode:'work', folderId:null, noteId:null, open:{}, results:null, editing:false,
   // 共通
-  members:[], notifs:[], notifOpen:false,
+  members:[], myRole:'member', notifs:[], notifOpen:false, attIds:new Set(), homeQ:'', noteQ:'',
   // 書類
   docs:[], docSort:{k:'issuedAt',d:-1}, docId:null, docEditing:false,
   dfil:{type:'',store:'',year:'',status:'',vendor:'',kw:''},
@@ -418,6 +518,39 @@ function renderLogin(err){
 }
 $('#signout').onclick = () => signOut(auth).then(()=>location.reload());
 
+/* ---------- 管理メニュー ---------- */
+$('#admin').onclick = () => {
+  const m=el('div','modal');
+  const n = S.attIds ? S.attIds.size : 0;
+  m.innerHTML=`<div class="box" style="width:520px">
+    <h3>管理</h3>
+    <p>データの取り込みなど、ふだんは使わない操作です。</p>
+    <div class="adm">
+      <button data-a="att"><b>過去の添付ファイルを取り込む</b>
+        <span>Googleドライブにある請求書PDFなどを、アプリの中で直接開けるようにします。
+              いま開けるのは ${n}件です。</span></button>
+      <button data-a="docs"><b>書類台帳の初期データを取り込む</b>
+        <span>documents_seed.json.gz を読み込んで、台帳261件を一括登録します。</span></button>
+      <button data-a="cache"><b>端末のキャッシュを消す</b>
+        <span>表示がおかしいときに。次に開いたとき読み直します。</span></button>
+    </div>
+    <div class="row"><button id="am-cl">閉じる</button></div></div>`;
+  document.body.appendChild(m);
+  m.querySelector('#am-cl').onclick=()=>m.remove();
+  m.querySelectorAll('.adm button').forEach(b=>{
+    b.onclick=async()=>{
+      const a=b.dataset.a; m.remove();
+      if(a==='att')  importAttachments();
+      if(a==='docs') importDocs();
+      if(a==='cache'){
+        try{ indexedDB.deleteDatabase('period_knowledge'); }catch(e){}
+        toast('キャッシュを消しました。画面を再読み込みします');
+        setTimeout(()=>location.reload(), 900);
+      }
+    };
+  });
+};
+
 /* ============================================================
    ナビゲーション
    ============================================================ */
@@ -429,7 +562,6 @@ function renderNav(){
     b.onclick=()=>go(k);
     n.appendChild(b);
   });
-  $('#searchWrap').classList.toggle('hide', S.view!=='knowledge');
 }
 function go(v){
   S.view=v; renderNav();
@@ -459,6 +591,7 @@ async function loadAll(){
 
   // 追加機能のデータは並行して読む
   loadMembers();
+  loadAttIndex().then(()=>{ if(S.noteId) renderDetail(); });
   Promise.all([syncDocs(), syncMinutes()]).then(()=>{
     buildNotifications();
     if(S.view==='home') renderHome();
@@ -469,7 +602,16 @@ async function loadMembers(){
   try{
     const s = await getDocs(collection(db,'members'));
     S.members = s.docs.map(d=>({email:d.id, ...d.data()}));
+    const me = S.members.find(x=>x.email===ME.email);
+    S.myRole = (me && me.role) || 'member';
   }catch(e){ S.members=[{email:ME.email,name:ME.name}]; }
+}
+// 経理・管理者あてに通知を配る
+async function notifyAccounting(kind, title, body, link){
+  const to = S.members.filter(m=>['accounting','admin'].includes((m.role||'').toLowerCase())
+                                 && m.email !== ME.email);
+  for(const m of to) await pushNotif(m.email, kind, title, body, link);
+  return to.length;
 }
 
 /* --- 汎用 差分同期（updatedAt をキーに端末にキャッシュ） --- */
@@ -564,118 +706,152 @@ async function idbSet(k,v){ try{ const d=await idb();
 /* ============================================================
    ホーム（ダッシュボード）
    ============================================================ */
+/* --- 最近ひらいたもの（この端末に保存） --- */
+const RECENT_KEY='period_stock_recent';
+const recents = () => { try{ return JSON.parse(localStorage.getItem(RECENT_KEY)||'[]'); }catch(e){ return []; } };
+function pushRecent(kind, id, title, sub){
+  if(!title) return;
+  const a = recents().filter(x=>!(x.kind===kind && x.id===id));
+  a.unshift({kind, id, title, sub:sub||'', at:nowISO()});
+  localStorage.setItem(RECENT_KEY, JSON.stringify(a.slice(0,12)));
+}
+const KINDLABEL = {note:'ノート', doc:'書類', minute:'議事録'};
+function openByKind(kind, id){
+  if(kind==='note'){ go('knowledge'); S.noteId=id; S.results=null; S.editing=false; renderList(); renderDetail(); }
+  if(kind==='doc'){ go('docs'); openDoc(id); }
+  if(kind==='minute'){ go('minutes'); openMinute(id); }
+}
+
+/* --- 全体をまとめて検索 --- */
+function globalSearch(q){
+  const keys=q.toLowerCase().split(/\s+/).filter(Boolean);
+  if(!keys.length) return [];
+  const hit=(hay)=>keys.every(k=>hay.toLowerCase().includes(k));
+  const out=[];
+  S.docs.forEach(d=>{
+    if(hit(`${d.vendor||''} ${d.fileName||''} ${d.noteTitle||''} ${d.folder||''} ${d.memo||''} ${d.period||''} ${d.store||''} ${d.amount||''}`))
+      out.push({kind:'doc', id:d.id, title:`${d.vendor||'（取引先未設定）'}　${d.period||''}`,
+        sub:`${d.type||''}・${d.store||''}・${yen(d.amount)}`, at:d.issuedAt||''});
+  });
+  S.minutes.forEach(m=>{
+    if(hit(`${m.title||''} ${m.store||''} ${(m.attendees||[]).join(' ')} ${(m.decisions||[]).join(' ')} ${(m.todos||[]).map(t=>t.text).join(' ')} ${stripHtml(m.body||'')}`))
+      out.push({kind:'minute', id:m.id, title:m.title||'(無題)',
+        sub:`${m.date||''}・${m.store||''}`, at:m.date||''});
+  });
+  const C=S.corpus;
+  S.notes.forEach(n=>{
+    if(hit(`${n.title||''} ${n.folder||''} ${n.preview||''} ${(C&&C[String(n.id)])||''}`))
+      out.push({kind:'note', id:n.id, title:n.title||'(無題)',
+        sub:`${n.folder||''}${n.att?`・添付${n.att}`:''}`, at:(n.updatedAt||'').slice(0,10)});
+  });
+  return out.sort((a,b)=>(b.at||'').localeCompare(a.at||'')).slice(0,60);
+}
+
 function renderHome(){
   const V=$('#view-home'); V.innerHTML='';
-  const p=el('div','page'); const w=el('div','page-w'); p.appendChild(w); V.appendChild(p);
+  const p=el('div','page'); const w=el('div','page-w home'); p.appendChild(w); V.appendChild(p);
 
-  w.appendChild(el('h1',null,`おはようございます、${esc(ME.name)}さん`));
-  w.appendChild(el('div','lead',`${new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'long'})}　Period.stock`));
+  /* ---------- 探す ---------- */
+  const sb=el('div','hsearch');
+  sb.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="#9aa3b2" stroke-width="2">
+    <circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>`;
+  const si=el('input');
+  si.placeholder='ノート・書類・議事録をまとめて検索';
+  si.autocomplete='off'; si.value = S.homeQ || '';
+  sb.appendChild(si);
+  w.appendChild(sb);
 
-  const unpaid = S.docs.filter(d=>d.status==='unpaid' && d.type==='請求書');
-  const overdue = unpaid.filter(d=>d.dueAt && d.dueAt < today());
-  const soon = unpaid.filter(d=>d.dueAt && d.dueAt >= today() && daysBetween(today(), d.dueAt) <= 7);
-  const sum = a => a.reduce((s,d)=>s+(Number(d.amount)||0),0);
-  const myTodos = allTodos().filter(t=>!t.done && (t.assignee===ME.name || t.assignee===ME.email));
-  const overTodos = myTodos.filter(t=>t.due && t.due < today());
+  const res=el('div'); w.appendChild(res);
+  const rest=el('div'); w.appendChild(rest);
 
-  const cards = el('div','cards');
-  const card = (cls,lb,vl,sfx,onclick) => {
-    const c=el('div','card'+(cls?' '+cls:''));
-    c.innerHTML=`<div class="lb">${esc(lb)}</div><div class="vl">${vl}</div><div class="sfx">${esc(sfx||'')}</div>`;
-    if(onclick){ c.style.cursor='pointer'; c.onclick=onclick; }
-    return c;
+  let t=null;
+  si.oninput=()=>{ clearTimeout(t); t=setTimeout(()=>{ S.homeQ=si.value.trim(); draw(); }, 200); };
+  setTimeout(()=>si.focus(), 30);
+
+  const draw = ()=>{
+    res.innerHTML=''; rest.innerHTML='';
+    const q=(S.homeQ||'').trim();
+    if(q){
+      const rows=globalSearch(q);
+      res.appendChild(el('div','sect-t',`検索結果 ${rows.length}件`));
+      if(!rows.length){ res.appendChild(el('div','empty','見つかりませんでした')); return; }
+      const box=el('div','listbox');
+      rows.forEach(r=>{
+        const it=el('div','srow');
+        it.innerHTML=`<span class="pill t">${KINDLABEL[r.kind]}</span>
+          <b>${esc(r.title)}</b><span class="s">${esc(r.sub)}</span><span class="d">${esc(r.at||'')}</span>`;
+        it.onclick=()=>{ pushRecent(r.kind, r.id, r.title, r.sub); openByKind(r.kind, r.id); };
+        box.appendChild(it);
+      });
+      res.appendChild(box);
+      return;
+    }
+    drawRest();
   };
-  cards.appendChild(card(overdue.length?'alert':'', '支払期日 超過', overdue.length+'<span style="font-size:14px">件</span>',
-    yen(sum(overdue)), ()=>{ S.dfil={type:'請求書',store:'',year:'',status:'unpaid',vendor:'',kw:''}; go('docs'); }));
-  cards.appendChild(card(soon.length?'warn':'', '7日以内が期日', soon.length+'<span style="font-size:14px">件</span>',
-    yen(sum(soon)), ()=>{ S.dfil={type:'請求書',store:'',year:'',status:'unpaid',vendor:'',kw:''}; go('docs'); }));
-  cards.appendChild(card('', '未払い 合計', `<span class="vl sm">${yen(sum(unpaid))}</span>`, `${unpaid.length}件`,
-    ()=>{ S.dfil={type:'請求書',store:'',year:'',status:'unpaid',vendor:'',kw:''}; go('docs'); }));
-  cards.appendChild(card(overTodos.length?'alert':'', '自分のToDo', myTodos.length+'<span style="font-size:14px">件</span>',
-    overTodos.length? `期限切れ ${overTodos.length}件` : '期限内'));
-  cards.appendChild(card('', '書類 総数', S.docs.length+'<span style="font-size:14px">件</span>', 'ナレッジ '+S.notes.length+'件'));
-  w.appendChild(cards);
 
-  const two = el('div');
-  two.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start';
+  const drawRest = ()=>{
+    /* ---------- はじめる ---------- */
+    const acts=el('div','quick');
+    const mk=(label, sub, fn)=>{ const b=el('button');
+      b.innerHTML=`<b>${esc(label)}</b><span>${esc(sub)}</span>`; b.onclick=fn; return b; };
+    acts.appendChild(mk('＋ 請求書を登録','写真を撮って登録', ()=>newDoc()));
+    acts.appendChild(mk('＋ 議事録を作成','決定事項とToDoを残す', ()=>{ go('minutes'); newMinute(); }));
+    rest.appendChild(acts);
 
-  /* 支払い予定 */
-  const left = el('div');
-  left.appendChild(el('div','sect-t','支払い予定（未払いの請求書）'));
-  const up = unpaid.slice().sort((a,b)=>(a.dueAt||'9999').localeCompare(b.dueAt||'9999')).slice(0,10);
-  if(!up.length) left.appendChild(el('div','empty','未払いの請求書はありません'));
-  else{
-    const t=el('table','tbl');
-    t.innerHTML='<thead><tr><th>期日</th><th>取引先</th><th>店舗</th><th style="text-align:right">金額</th></tr></thead>';
-    const tb=el('tbody');
-    up.forEach(d=>{
-      const over = d.dueAt && d.dueAt < today();
-      const tr=el('tr');
-      tr.innerHTML=`<td>${d.dueAt? `<span class="pill ${over?'over':'soon'}">${esc(d.dueAt.slice(5))}</span>` :'<span style="color:#c0c6d0">未設定</span>'}</td>
-        <td class="el">${esc(d.vendor||'')}</td><td><span class="pill t">${esc(d.store||'')}</span></td>
-        <td class="num">${yen(d.amount)}</td>`;
-      tr.onclick=()=>{ go('docs'); openDoc(d.id); };
-      tb.appendChild(tr);
-    });
-    t.appendChild(tb); left.appendChild(t);
-  }
+    /* ---------- 要対応（あるときだけ） ---------- */
+    const pending = S.docs.filter(d=>d.status==='pending');
+    const unpaid  = S.docs.filter(d=>d.status==='unpaid' && d.type==='請求書');
+    const overdue = unpaid.filter(d=>d.dueAt && d.dueAt < today());
+    const soon    = unpaid.filter(d=>d.dueAt && d.dueAt >= today() && daysBetween(today(), d.dueAt) <= 7);
+    const myTodos = allTodos().filter(t=>!t.done && (t.assignee===ME.name || t.assignee===ME.email));
+    const overTodos = myTodos.filter(t=>t.due && t.due < today());
+    const yensum = a => a.reduce((s,d)=>s+(Number(d.amount)||0),0);
 
-  /* 自分のToDo */
-  left.appendChild(el('div','sect-t','自分あてのToDo（議事録より）'));
-  if(!myTodos.length) left.appendChild(el('div','empty','未完了のToDoはありません'));
-  else{
-    const box=el('div'); box.style.cssText='background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px 16px';
-    myTodos.slice().sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999')).slice(0,10).forEach(t=>{
-      const r=el('div','todo');
-      const cb=el('input'); cb.type='checkbox';
-      cb.onclick=async e=>{ e.stopPropagation(); await toggleTodo(t.minuteId, t.idx, true); renderHome(); };
-      r.appendChild(cb);
-      r.appendChild(el('div','tt',`${esc(t.text)} <span style="color:#9aa3b2;font-size:11px">— ${esc(t.minuteTitle)}</span>`));
-      if(t.due) r.appendChild(el('div','as', t.due<today()? `<span class="pill over">${esc(t.due.slice(5))}</span>` : esc(t.due.slice(5))));
-      r.style.cursor='pointer';
-      r.onclick=()=>{ go('minutes'); openMinute(t.minuteId); };
-      box.appendChild(r);
-    });
-    left.appendChild(box);
-  }
-  two.appendChild(left);
+    const todo=[];
+    const goDocs = st => ()=>{ S.dfil={type:'',store:'',year:'',status:st,vendor:'',kw:''}; go('docs'); };
+    if(pending.length) todo.push(['warn', `経理の確認待ち ${pending.length}件`, '店舗から登録された請求書', goDocs('pending')]);
+    if(overdue.length) todo.push(['alert', `支払期日を過ぎている請求書 ${overdue.length}件`, yen(yensum(overdue)), goDocs('unpaid')]);
+    if(soon.length)    todo.push(['warn', `7日以内に支払期日 ${soon.length}件`, yen(yensum(soon)), goDocs('unpaid')]);
+    if(overTodos.length) todo.push(['alert', `期限を過ぎたToDo ${overTodos.length}件`, '議事録より',
+      ()=>{ go('minutes'); openMinute(overTodos[0].minuteId); }]);
+    else if(myTodos.length) todo.push(['', `自分あてのToDo ${myTodos.length}件`, '議事録より',
+      ()=>{ go('minutes'); openMinute(myTodos[0].minuteId); }]);
 
-  /* 最近の議事録 */
-  const right = el('div');
-  right.appendChild(el('div','sect-t','最近の議事録'));
-  const ms = S.minutes.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,7);
-  if(!ms.length){
-    const e=el('div','empty','議事録がまだありません');
-    const b=el('button','btn primary','＋ 議事録を作成'); b.style.marginTop='10px';
-    b.onclick=()=>{ go('minutes'); newMinute(); };
-    e.appendChild(el('div',null,'')); e.appendChild(b);
-    right.appendChild(e);
-  }else{
-    const box=el('div'); box.style.cssText='background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden';
-    ms.forEach(m=>{
-      const openTodos=(m.todos||[]).filter(t=>!t.done).length;
-      const r=el('div','item');
-      r.innerHTML=`<h3>${esc(m.title||'(無題)')}</h3>
-        <div class="foot"><span>${esc(m.date||'')}</span><span class="pill t">${esc(m.store||'')}</span>
-        ${openTodos?`<span class="badge">未完ToDo ${openTodos}</span>`:''}
-        <span style="margin-left:auto">${esc(m.author||'')}</span></div>`;
-      r.onclick=()=>{ go('minutes'); openMinute(m.id); };
-      box.appendChild(r);
-    });
-    right.appendChild(box);
-  }
+    if(todo.length){
+      rest.appendChild(el('div','sect-t','要対応'));
+      const box=el('div','listbox');
+      todo.forEach(([cls,ttl,sub,fn])=>{
+        const r=el('div','srow todo-row'+(cls?' '+cls:''));
+        r.innerHTML=`<b>${esc(ttl)}</b><span class="s">${esc(sub)}</span><span class="d">→</span>`;
+        r.onclick=fn; box.appendChild(r);
+      });
+      rest.appendChild(box);
+    }
 
-  /* 通知 */
-  right.appendChild(el('div','sect-t','最近の動き'));
-  const feed = S.notifs.slice(0,10);
-  if(!feed.length) right.appendChild(el('div','empty','新しい動きはありません'));
-  else{
-    const box=el('div'); box.style.cssText='background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden';
-    feed.forEach(n=>box.appendChild(notifRow(n)));
-    right.appendChild(box);
-  }
-  two.appendChild(right);
-  w.appendChild(two);
+    /* ---------- 最近ひらいたもの ---------- */
+    const rc=recents();
+    if(rc.length){
+      rest.appendChild(el('div','sect-t','最近ひらいたもの'));
+      const box=el('div','listbox');
+      rc.slice(0,8).forEach(r=>{
+        const it=el('div','srow');
+        it.innerHTML=`<span class="pill t">${KINDLABEL[r.kind]}</span>
+          <b>${esc(r.title)}</b><span class="s">${esc(r.sub||'')}</span>`;
+        it.onclick=()=>openByKind(r.kind, r.id);
+        box.appendChild(it);
+      });
+      rest.appendChild(box);
+    }
+
+    /* ---------- 数字はここに1行だけ ---------- */
+    const st=el('div','stat');
+    st.innerHTML = `ノート ${S.notes.length.toLocaleString()}件　/　書類 ${S.docs.length.toLocaleString()}件`
+      + (S.minutes.length? `　/　議事録 ${S.minutes.length}件` : '')
+      + (unpaid.length? `　/　未払い ${yen(yensum(unpaid))}（${unpaid.length}件）` : '');
+    rest.appendChild(st);
+  };
+
+  draw();
 }
 
 /* ============================================================
@@ -686,7 +862,7 @@ function renderSidebar(){
   const tabs = el('div','mode-tabs');
   [['work','実務'],['daily','日報'],['arc','アーカイブ']].forEach(([k,label])=>{
     const b=el('button',S.mode===k?'on':'',label);
-    b.onclick=()=>{ S.mode=k; S.folderId=null; S.results=null; $('#q').value='';
+    b.onclick=()=>{ S.mode=k; S.folderId=null; S.results=null; S.noteQ='';
       renderSidebar(); renderList(); renderDetail(); };
     tabs.appendChild(b);
   });
@@ -699,7 +875,7 @@ function renderSidebar(){
   Object.keys(bySec).sort().forEach(sec=>{
     const total = bySec[sec].reduce((a,f)=>a+counts[f.id],0);
     const wrap = el('div','sec');
-    const open = S.open[sec] !== false;
+    const open = S.open[sec] === true;   // はじめは閉じておく
     const h = el('div','sec-h',
       `<span class="arrow${open?' open':''}">&#9654;</span><span>${esc(sec)}</span><span class="cnt">${total}</span>`);
     h.onclick=()=>{ S.open[sec]=!open; renderSidebar(); };
@@ -708,7 +884,7 @@ function renderSidebar(){
       bySec[sec].sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(f=>{
         const d=el('div','fold'+(S.folderId===f.id?' on':''),
           `<span>${esc(f.name)}</span><span class="n">${counts[f.id]}</span>`);
-        d.onclick=()=>{ S.folderId=f.id; S.results=null; $('#q').value='';
+        d.onclick=()=>{ S.folderId=f.id; S.results=null; S.noteQ='';
           renderSidebar(); renderList(); renderDetail(); };
         wrap.appendChild(d);
       });
@@ -734,6 +910,17 @@ function renderList(){
   }
   rows = rows.slice().sort((a,b)=> (b.updatedAt||'').localeCompare(a.updatedAt||''));
   const head = el('div','list-head');
+  const sw=el('div','lsearch');
+  sw.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="#9aa3b2" stroke-width="2">
+    <circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>`;
+  const si=el('input'); si.placeholder='ノートを検索（本文まで）'; si.autocomplete='off';
+  si.value = S.noteQ || '';
+  let qt2=null;
+  si.oninput=()=>{ clearTimeout(qt2); const v=si.value.trim();
+    qt2=setTimeout(()=>{ S.noteQ=v; doSearch(v);
+      const nx=$('#list .lsearch input'); if(nx){ nx.focus(); nx.setSelectionRange(nx.value.length,nx.value.length); }
+    }, 200); };
+  sw.appendChild(si); head.appendChild(sw);
   head.appendChild(el('h2',null,esc(title)));
   head.appendChild(el('div','meta',sub));
   if(S.folderId && !S.results){
@@ -762,6 +949,7 @@ async function renderDetail(){
   const snap = await getDoc(doc(db,'notes',String(S.noteId)));
   if(!snap.exists()){ D.innerHTML='<div class="empty">ノートが見つかりません</div>'; return; }
   const n = {id:snap.id, ...snap.data()};
+  pushRecent('note', String(n.id), n.title, n.folder);
   const ed = S.editing;
   D.innerHTML='';
   const head=el('div','detail-head');
@@ -801,15 +989,8 @@ async function renderDetail(){
   D.appendChild(body);
   if((n.attachments||[]).length){
     const a=el('div','attach');
-    a.appendChild(el('h4',null,`添付ファイル ${n.attachments.length}件（Googleドライブ内）`));
-    n.attachments.forEach(f=>{
-      const r=el('div','att-row');
-      r.innerHTML=`<span>${esc(f.name)}</span><span class="sz">${mb(f.size||0)}</span>`;
-      const b=el('button',null,'パスをコピー');
-      b.onclick=()=>{ navigator.clipboard.writeText('Claude/stock データ移行/'+f.path);
-        b.textContent='コピーしました'; setTimeout(()=>b.textContent='パスをコピー',1500); };
-      r.appendChild(b); a.appendChild(r);
-    });
+    a.appendChild(el('h4',null,`添付ファイル ${n.attachments.length}件`));
+    n.attachments.forEach(f=>a.appendChild(attachmentRow(f)));
     D.appendChild(a);
   }
   // コメント欄
@@ -817,6 +998,51 @@ async function renderDetail(){
   D.appendChild(cw);
   mountComments(cw, 'note', String(n.id), n.title);
 }
+/* 添付ファイル1件ぶんの行。アプリに取り込み済みならその場で開ける。 */
+function attachmentRow(f){
+  const wrap = el('div');
+  const inApp = S.attIds && S.attIds.has(pathId(f.path));
+  const r = el('div','att-row');
+  r.innerHTML = `<span style="word-break:break-all">${esc(f.name)}</span><span class="sz">${mb(f.size||0)}</span>`;
+
+  const pv = el('div'); pv.style.cssText='margin:10px 0 4px';
+  let open=false;
+
+  if(inApp){
+    const b=el('button',null,'開く');
+    b.style.fontWeight='600';
+    b.onclick=async()=>{
+      if(open){ pv.innerHTML=''; open=false; b.textContent='開く'; return; }
+      b.textContent='読み込み中…'; b.disabled=true;
+      pv.innerHTML='<div style="padding:16px;color:#9aa3b2;font-size:12px"><span class="spin"></span> 読み込み中</div>';
+      try{
+        const v = await loadAttachment(f.path, t=>{ const s=pv.querySelector('div'); if(s) s.innerHTML=`<span class="spin"></span> ${esc(t)}`; });
+        pv.innerHTML='';
+        if(!v){ pv.innerHTML='<div style="font-size:12px;color:var(--sub)">アプリの中に見つかりませんでした。</div>'; }
+        else if(/^image\//.test(v.type)){
+          const a2=el('a'); a2.href=v.url; a2.target='_blank'; a2.rel='noopener';
+          const im=el('img'); im.src=v.url; im.className='fprev'; a2.appendChild(im); pv.appendChild(a2);
+        }else{
+          const fr=el('iframe'); fr.src=v.url; fr.className='fprev pdf'; pv.appendChild(fr);
+          const ob=el('button','btn sm','別タブで大きく見る'); ob.style.marginTop='8px';
+          ob.onclick=()=>window.open(v.url,'_blank','noopener'); pv.appendChild(ob);
+        }
+        open=true; b.textContent='閉じる';
+      }catch(e){ pv.innerHTML=`<div style="font-size:12px;color:var(--danger)">${esc(e.message)}</div>`; }
+      b.disabled=false;
+    };
+    r.appendChild(b);
+  }
+
+  const cp=el('button',null,'パスをコピー');
+  cp.onclick=()=>{ navigator.clipboard.writeText('Claude/stock データ移行/'+f.path);
+    cp.textContent='コピーしました'; setTimeout(()=>cp.textContent='パスをコピー',1500); };
+  r.appendChild(cp);
+
+  wrap.appendChild(r); wrap.appendChild(pv);
+  return wrap;
+}
+
 async function saveNote(n){
   const title = $('#t-edit').innerText.trim() || '(無題)';
   const body  = $('#b-edit').innerHTML;
@@ -852,12 +1078,6 @@ async function removeNote(n){
   S.notes = S.notes.filter(x=>x.id!=n.id);
   S.noteId=null; renderSidebar(); renderList(); renderDetail();
 }
-let qt=null;
-$('#q').addEventListener('input', e=>{
-  clearTimeout(qt);
-  const v=e.target.value.trim();
-  qt=setTimeout(()=>doSearch(v), 180);
-});
 function doSearch(q){
   if(!q){ S.results=null; renderList(); return; }
   const keys = q.toLowerCase().split(/\s+/).filter(Boolean);
@@ -912,7 +1132,6 @@ function renderDocs(){
   const acts=el('div'); acts.style.cssText='margin-left:auto;display:flex;gap:8px';
   const nb=el('button','btn primary','＋ 新規登録'); nb.onclick=()=>newDoc(); acts.appendChild(nb);
   const cb=el('button','btn','CSV書き出し'); cb.onclick=()=>exportDocsCsv(); acts.appendChild(cb);
-  const ib=el('button','btn','初期データ取込'); ib.onclick=()=>importDocs(); acts.appendChild(ib);
   hd.appendChild(acts);
   w.appendChild(hd);
 
@@ -920,15 +1139,18 @@ function renderDocs(){
   const inv = rows.filter(d=>d.type==='請求書');
   const unpaid = inv.filter(d=>d.status==='unpaid');
   const overdue = unpaid.filter(d=>d.dueAt && d.dueAt<today());
+  const pending = S.docs.filter(d=>d.status==='pending');
   const sum = a => a.reduce((s,d)=>s+(Number(d.amount)||0),0);
-  const cards=el('div','cards');
-  const mk=(cls,lb,vl,sfx)=>{ const c=el('div','card'+(cls?' '+cls:''));
-    c.innerHTML=`<div class="lb">${lb}</div><div class="vl">${vl}</div><div class="sfx">${sfx||''}</div>`; return c; };
-  cards.appendChild(mk('', '該当件数', rows.length+'<span style="font-size:14px">件</span>', `全 ${S.docs.length}件中`));
-  cards.appendChild(mk('', '請求額 合計', `<span class="vl sm">${yen(sum(inv))}</span>`, `請求書 ${inv.length}件`));
-  cards.appendChild(mk(unpaid.length?'warn':'', '未払い', `<span class="vl sm">${yen(sum(unpaid))}</span>`, `${unpaid.length}件`));
-  cards.appendChild(mk(overdue.length?'alert':'', '期日超過', overdue.length+'<span style="font-size:14px">件</span>', yen(sum(overdue))));
-  w.appendChild(cards);
+
+  // 確認待ちが溜まっていたら、いちばん上で知らせる
+  if(pending.length){
+    const bn=el('div','banner');
+    bn.innerHTML=`<b>経理の確認待ちが ${pending.length}件 あります</b>
+      <span>店舗から登録された請求書です。内容を確かめて「未払い」に進めてください。</span>`;
+    const b=el('button','btn primary sm','確認待ちだけ表示');
+    b.onclick=()=>{ S.dfil={type:'',store:'',year:'',status:'pending',vendor:'',kw:''}; renderDocs(); };
+    bn.appendChild(b); w.appendChild(bn);
+  }
 
   const f=el('div','filters');
   const sel=(key,label,opts)=>{
@@ -954,8 +1176,17 @@ function renderDocs(){
   f.appendChild(cl);
   w.appendChild(f);
 
+  // 数字は表の上に1行だけ
+  const st=el('div','stat');
+  st.innerHTML = `${rows.length.toLocaleString()}件`
+    + (rows.length!==S.docs.length ? `（全${S.docs.length.toLocaleString()}件中）` : '')
+    + (inv.length ? `　/　請求額 ${yen(sum(inv))}` : '')
+    + (unpaid.length ? `　/　未払い ${yen(sum(unpaid))}（${unpaid.length}件）` : '')
+    + (overdue.length ? `　/　<span style="color:var(--danger)">期日超過 ${overdue.length}件</span>` : '');
+  w.appendChild(st);
+
   if(!S.docs.length){
-    w.appendChild(el('div','empty','まだ書類が登録されていません。<br>「初期データ取込」から documents_seed.json.gz を読み込むか、「＋ 新規登録」で1件ずつ追加してください。'));
+    w.appendChild(el('div','empty','まだ書類が登録されていません。<br>「＋ 新規登録」で追加するか、右上の「管理」から初期データを取り込んでください。'));
     return;
   }
   if(!rows.length){ w.appendChild(el('div','empty','条件に一致する書類がありません')); return; }
@@ -999,31 +1230,339 @@ function renderDocs(){
   if(sorted.length>600) w.appendChild(el('div','empty',`ほか ${sorted.length-600} 件は絞り込んでください`));
 }
 
+/* ============================================================
+   ファイルの保存（完全無料・Firestoreの中に入れる）
+
+   Firebase Storage は有料プラン（Blaze）が要るので使いません。
+   代わりに、写真を小さく圧縮して Firestore のドキュメントに直接しまいます。
+   Firestore の1ドキュメントは1MBまで。写真は長辺1400px・JPEGに落として
+   だいたい100〜300KBに収まるので、無料枠1GB＝およそ4,000〜8,000枚ぶん入ります。
+   ============================================================ */
+const MAX_BYTES = 900000;   // 1MB制限に対する安全圏
+
+async function compressImage(file, onProgress){
+  const bmp = await createImageBitmap(file);
+  const cv = document.createElement('canvas');
+  const ctx = cv.getContext('2d');
+  let last = null;
+  for(const [w, q] of [[1600,.82],[1400,.75],[1200,.68],[1000,.62],[800,.55],[640,.5]]){
+    const sc = Math.min(1, w/Math.max(bmp.width, bmp.height));
+    cv.width  = Math.max(1, Math.round(bmp.width*sc));
+    cv.height = Math.max(1, Math.round(bmp.height*sc));
+    ctx.drawImage(bmp, 0, 0, cv.width, cv.height);
+    const blob = await new Promise(r=>cv.toBlob(r, 'image/jpeg', q));
+    if(!blob) break;
+    last = blob;
+    onProgress && onProgress(`画像を軽くしています… ${mb(blob.size)}`);
+    if(blob.size <= MAX_BYTES) return blob;
+  }
+  if(last) return last;
+  throw new Error('画像を処理できませんでした。');
+}
+
+// ファイルを Firestore の docFiles/{書類ID} に保存する
+async function saveDocFile(docId, file, onProgress){
+  let blob = file, type = file.type || 'application/octet-stream', name = file.name;
+  if(/^image\//.test(type)){
+    blob = await compressImage(file, onProgress);
+    type = 'image/jpeg';
+    name = name.replace(/\.[^.]+$/,'') + '.jpg';
+  }
+  if(blob.size > MAX_BYTES){
+    throw new Error(/pdf/i.test(type)
+      ? `このPDFは大きすぎます（${mb(blob.size)}／上限 ${mb(MAX_BYTES)}）。かわりに紙を写真で撮るか、下の「ファイルのリンク」にGoogleドライブの共有リンクを貼ってください。`
+      : `ファイルが大きすぎます（${mb(blob.size)}／上限 ${mb(MAX_BYTES)}）。`);
+  }
+  onProgress && onProgress('保存しています…');
+  const u8 = new Uint8Array(await blob.arrayBuffer());
+  await setDoc(doc(db,'docFiles',docId),
+    { data:Bytes.fromUint8Array(u8), type, name, size:blob.size, updatedAt:nowISO() });
+  return { fileName:name, fileType:type, fileSize:blob.size, hasFile:true };
+}
+
+// 表示用に読み出す（開いたときだけ取りに行く）
+const fileCache = new Map();
+async function loadDocFile(docId){
+  if(fileCache.has(docId)) return fileCache.get(docId);
+  const s = await getDoc(doc(db,'docFiles',docId));
+  if(!s.exists()) return null;
+  const v = s.data();
+  const url = URL.createObjectURL(new Blob([v.data.toUint8Array()], {type:v.type}));
+  const out = { url, type:v.type, name:v.name, size:v.size };
+  fileCache.set(docId, out);
+  return out;
+}
+
+/* ============================================================
+   Stockから引き継いだ添付ファイル（Googleドライブの680件）
+
+   ファイルの保存場所（パス）から決まるIDを付けて Firestore にしまう。
+   1MBを超えるものは900KBずつに割って、開くときに繋ぎ直す。
+   ============================================================ */
+const CHUNK = 900000;
+const VIEWABLE = /\.(pdf|jpe?g|png|webp|avif|gif)$/i;
+const MIME = { pdf:'application/pdf', jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png',
+               webp:'image/webp', avif:'image/avif', gif:'image/gif' };
+
+// パスから決まるID（NFC正規化してから64bitハッシュ）
+function pathId(p){
+  const s = String(p||'').normalize('NFC');
+  let a=0x811c9dc5, b=0x01000193;
+  for(let i=0;i<s.length;i++){
+    const c=s.charCodeAt(i);
+    a = Math.imul(a ^ c, 16777619) >>> 0;
+    b = Math.imul(b + c + 0x9e3779b9, 2246822519) >>> 0;
+  }
+  return 'a' + a.toString(36) + b.toString(36);
+}
+
+// 取り込み済みの一覧（どれがアプリで開けるか）。IDは1つ14文字ほどなので、
+// 1,000件でも15KB程度。1回の読み取りで済むように1ドキュメントにまとめて持つ。
+async function loadAttIndex(){
+  try{
+    const m = await getDoc(doc(db,'meta','attIndex'));
+    S.attIds = new Set((m.exists() && m.data().ids) || []);
+  }catch(e){ S.attIds = new Set(); }
+}
+
+const attCache = new Map();
+async function loadAttachment(path, onProgress){
+  const id = pathId(path);
+  if(attCache.has(id)) return attCache.get(id);
+  const m = await getDoc(doc(db,'attFiles',id));
+  if(!m.exists()) return null;
+  const v = m.data();
+  const parts = [];
+  for(let n=0; n<v.chunks; n++){
+    onProgress && onProgress(v.chunks>1 ? `読み込み中… ${n+1}/${v.chunks}` : '読み込み中…');
+    const c = await getDoc(doc(db,'attChunks', `${id}_${String(n).padStart(3,'0')}`));
+    if(!c.exists()) throw new Error('ファイルの一部が見つかりません');
+    parts.push(c.data().b.toUint8Array());
+  }
+  const out = { url: URL.createObjectURL(new Blob(parts, {type:v.type})),
+                type:v.type, name:v.name, size:v.size };
+  attCache.set(id, out);
+  return out;
+}
+
+/* 添付ファイルの一括取り込み（Googleドライブのフォルダを選ぶだけ） */
+function importAttachments(){
+  const m=el('div','modal');
+  m.innerHTML=`<div class="box" style="width:600px">
+    <h3>過去の添付ファイルを取り込む</h3>
+    <p>Googleドライブの <b>「stock データ移行 / 添付ファイル」フォルダ</b> を選んでください。<br>
+       中のPDFと画像をアプリの中に入れて、ノートからそのまま開けるようにします。<br>
+       途中で止まっても、もう一度やれば続きから再開します。</p>
+    <div class="drop" id="adrop">
+      <div class="ph"><b>フォルダを選ぶ</b><span>「添付ファイル」フォルダごと選択してください</span></div>
+    </div>
+    <input type="file" id="apick" webkitdirectory directory multiple style="display:none">
+    <div class="bar"><i id="apb"></i></div>
+    <div class="log" id="alg" style="display:none"></div>
+    <div class="row"><button id="acl">閉じる</button></div></div>`;
+  document.body.appendChild(m);
+  const $$ = s=>m.querySelector(s);
+  $$('#acl').onclick=()=>m.remove();
+  $$('#adrop').onclick=()=>$$('#apick').click();
+  $$('#apick').onchange = e => runAttImport([...e.target.files], $$);
+}
+
+async function runAttImport(files, $$){
+  const lg=$$('#alg'); lg.style.display='block';
+  const log = t => { lg.textContent += t+'\n'; lg.scrollTop=lg.scrollHeight; };
+  const prog = p => $$('#apb').style.width = (p*100).toFixed(1)+'%';
+  try{
+    await loadAttIndex();
+    const done = new Set(S.attIds);
+    // 「添付ファイル/…」から始まる相対パスに揃える
+    const targets = files.filter(f=>VIEWABLE.test(f.name)).map(f=>{
+      let rel = (f.webkitRelativePath || f.name).normalize('NFC');
+      const i = rel.indexOf('添付ファイル/');
+      rel = i>=0 ? rel.slice(i) : ('添付ファイル/'+rel);
+      return {f, rel, id:pathId(rel)};
+    });
+    const todo = targets.filter(t=>!done.has(t.id));
+    const totalMB = todo.reduce((s,t)=>s+t.f.size,0)/1048576;
+    log(`開ける形式のファイル ${targets.length}件`);
+    log(`取り込み済み ${targets.length-todo.length}件 / これから ${todo.length}件（${totalMB.toFixed(0)}MB）`);
+    if(!todo.length){ log('すべて取り込み済みです。'); prog(1); return; }
+
+    let b = writeBatch(db), ops=0, bytes=0, okCount=0, ngCount=0;
+    const flush = async ()=>{ if(ops){ await b.commit(); b=writeBatch(db); ops=0; bytes=0; } };
+
+    for(let i=0;i<todo.length;i++){
+      const {f, rel, id} = todo[i];
+      try{
+        const ext = (f.name.split('.').pop()||'').toLowerCase();
+        let blob = f, type = MIME[ext] || f.type || 'application/octet-stream';
+        // 画像は縮めてから入れる（PDFはそのまま）
+        if(/^image\//.test(type) && f.size > CHUNK){
+          blob = await compressImage(f); type = 'image/jpeg';
+        }
+        const u8 = new Uint8Array(await blob.arrayBuffer());
+        const chunks = Math.max(1, Math.ceil(u8.length / CHUNK));
+        for(let n=0;n<chunks;n++){
+          const part = u8.subarray(n*CHUNK, Math.min(u8.length, (n+1)*CHUNK));
+          b.set(doc(db,'attChunks', `${id}_${String(n).padStart(3,'0')}`),
+                { b: Bytes.fromUint8Array(part) });
+          ops++; bytes += part.length;
+          if(ops>=400 || bytes > 7000000) await flush();
+        }
+        b.set(doc(db,'attFiles',id), { name:f.name, type, size:u8.length, chunks, path:rel });
+        ops++;
+        if(ops>=400 || bytes > 7000000) await flush();
+        done.add(id); okCount++;
+      }catch(err){ ngCount++; log(`× ${f.name}：${err.message}`); }
+      prog((i+1)/todo.length*0.97);
+      if((i+1)%20===0) log(`${i+1} / ${todo.length}　（${f.name.slice(0,34)}）`);
+    }
+    await flush();
+
+    log('一覧を更新しています…');
+    const ids=[...done];
+    await setDoc(doc(db,'meta','attIndex'), { version:Date.now(), count:ids.length, ids });
+    S.attIds = new Set(ids);
+    prog(1);
+    log(`\n完了しました。取り込み ${okCount}件${ngCount?` / 失敗 ${ngCount}件`:''}`);
+    log(`アプリで開けるファイル 合計 ${ids.length}件`);
+    toast(`${okCount}件を取り込みました`);
+    if(S.noteId) renderDetail();
+  }catch(e){ log('エラー: '+e.message); }
+}
+
+/* ---------- 請求書の登録（スタッフ用・スマホ想定） ---------- */
 function newDoc(){
-  const d={ id:'d'+Date.now(), type:'請求書', vendor:'', amount:null, issuedAt:today(), dueAt:'',
-    period:today().slice(0,7), store:'本部', section:'', status:'unpaid', fileName:'', filePath:'',
-    fileSize:0, noteId:'', noteTitle:'', folder:'', memo:'', createdAt:nowISO(), source:'manual' };
-  S.docs.unshift(d); openDoc(d.id, true);
+  const m=el('div','modal');
+  m.innerHTML=`<div class="box reg">
+    <h3>請求書を登録する</h3>
+    <p>写真かPDFを選んで、わかる範囲で入れてください。空欄があっても登録できます。<br>
+       登録すると経理に通知が飛び、経理が確認します。</p>
+    <div class="drop" id="drop">
+      <div class="ph">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#b9c0cc" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v13"/></svg>
+        <b>写真をとる / ファイルを選ぶ</b>
+        <span>スマホならカメラも使えます・PDFもOK</span>
+      </div>
+      <img id="prev" style="display:none">
+      <div id="fname" class="fn"></div>
+    </div>
+    <input type="file" id="pick" accept="image/*,application/pdf" style="display:none">
+    <div class="fgrid" style="margin-top:18px">
+      <label>店舗</label><select id="r-store"></select>
+      <label>取引先</label><input id="r-vendor" placeholder="例：株式会社hacomono">
+      <label>金額（税込）</label><input id="r-amount" type="number" inputmode="numeric" placeholder="38500">
+      <label>支払期日</label><input id="r-due" type="date">
+      <label>種別</label><select id="r-type"></select>
+      <label>メモ</label><input id="r-memo" placeholder="任意">
+      <label>リンク</label><input id="r-link" placeholder="任意：Googleドライブの共有リンク">
+    </div>
+    <div class="row"><button id="r-cancel">キャンセル</button>
+      <button id="r-go" class="primary">登録する</button></div>
+    <div id="r-msg" style="font-size:12px;color:var(--sub);margin-top:10px;text-align:right"></div>
+  </div>`;
+  document.body.appendChild(m);
+  const $$ = s => m.querySelector(s);
+  STORES.forEach(s=>{ const o=el('option',null,esc(s)); o.value=s; $$('#r-store').appendChild(o); });
+  DTYPES.forEach(t=>{ const o=el('option',null,esc(t)); o.value=t; $$('#r-type').appendChild(o); });
+  $$('#r-store').value = STORES[0];
+
+  let picked=null;
+  const showFile=f=>{
+    picked=f;
+    $$('#fname').textContent = f.name + '（' + mb(f.size) + '）';
+    const p=$$('#prev');
+    if(/^image\//.test(f.type)){ p.src=URL.createObjectURL(f); p.style.display='block'; $$('.ph').style.display='none'; }
+    else { p.style.display='none'; $$('.ph').style.display='flex'; }
+    $$('#drop').classList.add('has');
+  };
+  $$('#drop').onclick=()=>$$('#pick').click();
+  $$('#pick').onchange=e=>{ const f=e.target.files[0]; if(f) showFile(f); };
+  const dz=$$('#drop');
+  dz.ondragover=e=>{ e.preventDefault(); dz.classList.add('over'); };
+  dz.ondragleave=()=>dz.classList.remove('over');
+  dz.ondrop=e=>{ e.preventDefault(); dz.classList.remove('over');
+    const f=e.dataTransfer.files[0]; if(f) showFile(f); };
+
+  $$('#r-cancel').onclick=()=>m.remove();
+  $$('#r-go').onclick=async()=>{
+    const btn=$$('#r-go'), msg=$$('#r-msg');
+    btn.disabled=true;
+    const id='d'+Date.now()+Math.random().toString(36).slice(2,5);
+    const d = { id, type:$$('#r-type').value, vendor:$$('#r-vendor').value.trim(),
+      amount: $$('#r-amount').value==='' ? null : Number($$('#r-amount').value),
+      issuedAt:today(), dueAt:$$('#r-due').value, period:today().slice(0,7),
+      store:$$('#r-store').value, section:'', status:'pending',
+      fileName:'', hasFile:false, fileSize:0, fileType:'', filePath:'',
+      fileLink:$$('#r-link').value.trim(),
+      noteId:'', noteTitle:'', folder:'', memo:$$('#r-memo').value,
+      createdBy:ME.name, createdByEmail:ME.email, createdAt:nowISO(), updatedAt:nowISO(),
+      deleted:false, source:'app' };
+    try{
+      if(picked){
+        msg.textContent='ファイルを準備しています…';
+        Object.assign(d, await saveDocFile(id, picked, t=>msg.textContent=t));
+      }
+      msg.textContent='保存しています…';
+      await setDoc(doc(db,'documents',id), d);
+      S.docs.unshift(d);
+      await idbSet('docs_cache', null);
+      const n = await notifyAccounting('doc', '請求書が登録されました',
+        `${d.store}　${d.vendor||'取引先未記入'}　${d.amount?yen(d.amount):'金額未記入'}（登録 ${ME.name}）`,
+        {view:'docs', id});
+      m.remove();
+      buildNotifications(); renderDocs();
+      toast(n ? `登録しました。経理${n}名に通知しました` : '登録しました');
+    }catch(err){
+      msg.innerHTML = `<span style="color:var(--danger)">${esc(err.message)}</span>`;
+      btn.disabled=false;
+    }
+  };
 }
 
 function openDoc(id, editing){
   const d = S.docs.find(x=>x.id===id); if(!d) return;
   S.docId=id;
+  pushRecent('doc', d.id, `${d.vendor||'（取引先未設定）'}　${d.period||''}`, `${d.type||''}・${d.store||''}`);
   const bg=el('div','drawer-bg'); const dw=el('div','drawer');
   const close=()=>{ bg.remove(); dw.remove(); S.docId=null; };
   bg.onclick=close;
 
   const hd=el('div','dh'); hd.style.position='relative';
   hd.innerHTML=`<button class="x">&times;</button>
-    <div style="font-size:11.5px;color:var(--sub);letter-spacing:.05em">${esc(d.type||'')} / ${esc(d.store||'')}</div>
+    <div style="font-size:11.5px;color:var(--sub);letter-spacing:.05em">
+      ${esc(d.type||'')} / ${esc(d.store||'')}
+      <span class="pill ${esc(d.status||'checked')}" style="margin-left:6px">${esc(DSTATUS[d.status]||'—')}</span></div>
     <h2>${esc(d.vendor||'（取引先未設定）')}</h2>
     <div style="font-size:12.5px;color:var(--sub);margin-top:4px">
       ${esc(d.period||'')}　<b style="color:var(--text);font-size:15px">${yen(d.amount)}</b>
-      ${d.dueAt?`　期日 ${esc(d.dueAt)}`:''}</div>`;
+      ${d.dueAt?`　期日 ${esc(d.dueAt)}`:''}</div>
+    ${d.createdBy?`<div style="font-size:11px;color:#9aa3b2;margin-top:3px">登録 ${esc(d.createdBy)} / ${fmt(d.createdAt)}${
+      d.checkedBy?`　確認 ${esc(d.checkedBy)} / ${fmt(d.checkedAt)}`:''}</div>`:''}`;
   hd.querySelector('.x').onclick=close;
   dw.appendChild(hd);
 
   const bd=el('div','db'); dw.appendChild(bd);
+
+  /* --- 経理の確認ボタン（確認待ちのときだけ大きく出す） --- */
+  if(d.status==='pending'){
+    const box=el('div','approve');
+    box.innerHTML=`<b>経理の確認待ちです</b>
+      <span>内容を確かめて、問題なければ「確認して未払いにする」を押してください。</span>`;
+    const rw=el('div'); rw.style.cssText='display:flex;gap:8px;margin-top:12px;flex-wrap:wrap';
+    const ok=el('button','btn primary','確認して未払いにする');
+    ok.onclick=()=>setStatus(d, 'unpaid', close);
+    const hold=el('button','btn','差し戻す（保留）');
+    hold.onclick=()=>setStatus(d, 'hold', close);
+    rw.appendChild(ok); rw.appendChild(hold); box.appendChild(rw);
+    bd.appendChild(box);
+  }else if(d.status==='unpaid'){
+    const rw=el('div'); rw.style.cssText='display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap';
+    const ok=el('button','btn primary','支払済にする');
+    ok.onclick=()=>setStatus(d, 'paid', close);
+    rw.appendChild(ok); bd.appendChild(rw);
+  }
 
   const g=el('div','fgrid');
   const field=(label, node)=>{ g.appendChild(el('label',null,esc(label))); g.appendChild(node); return node; };
@@ -1069,24 +1608,104 @@ function openDoc(id, editing){
     close(); renderDocs(); toast('削除しました');
   };
 
-  // ファイル
-  if(d.filePath){
-    bd.appendChild(el('div','sect-t','ファイル（Googleドライブ）'));
-    const r=el('div','att-row');
-    r.innerHTML=`<span style="word-break:break-all">${esc(d.fileName||'')}</span><span class="sz">${mb(d.fileSize||0)}</span>`;
-    const b=el('button',null,'パスをコピー');
-    b.onclick=()=>{ navigator.clipboard.writeText('Claude/stock データ移行/'+d.filePath);
-      b.textContent='コピーしました'; setTimeout(()=>b.textContent='パスをコピー',1500); };
-    r.appendChild(b); bd.appendChild(r);
-    bd.appendChild(el('div',null,
-      `<div style="font-size:11px;color:#9aa3b2;margin-top:8px;line-height:1.6">
-       コピーしたパスを Finder の「移動」→「フォルダへ移動」に貼り付けると開けます。</div>`));
+  // ---------- ファイル ----------
+  bd.appendChild(el('div','sect-t','ファイル'));
+  const fbox = el('div');
+  bd.appendChild(fbox);
+  const drawFile = async ()=>{
+    fbox.innerHTML='';
+    if(d.hasFile){
+      // アプリに登録されたファイル（Firestoreの中）
+      const ph=el('div',null,'<div style="padding:24px;text-align:center;color:#9aa3b2;font-size:12px"><span class="spin"></span> 読み込み中</div>');
+      fbox.appendChild(ph);
+      let f=null;
+      try{ f = await loadDocFile(d.id); }catch(e){}
+      ph.remove();
+      if(f){
+        if(/^image\//.test(f.type||'')){
+          const a=el('a'); a.href=f.url; a.target='_blank'; a.rel='noopener';
+          const im=el('img'); im.src=f.url; im.className='fprev'; a.appendChild(im); fbox.appendChild(a);
+        }else{
+          const fr=el('iframe'); fr.src=f.url; fr.className='fprev pdf'; fbox.appendChild(fr);
+        }
+        const r=el('div','att-row');
+        r.innerHTML=`<span style="word-break:break-all">${esc(f.name||'')}</span><span class="sz">${mb(f.size||0)}</span>`;
+        const op=el('button',null,'別タブで開く');
+        op.onclick=()=>window.open(f.url,'_blank','noopener');
+        const rm=el('button',null,'削除');
+        rm.style.color='var(--danger)';
+        rm.onclick=async()=>{
+          if(!confirm('このファイルを削除します。よろしいですか？')) return;
+          try{ await deleteDoc(doc(db,'docFiles',d.id)); }catch(e){}
+          fileCache.delete(d.id);
+          Object.assign(d,{hasFile:false,fileName:'',fileSize:0,fileType:''});
+          await setDoc(doc(db,'documents',d.id),
+            {hasFile:false,fileName:'',fileSize:0,fileType:'',updatedAt:nowISO()},{merge:true});
+          await idbSet('docs_cache', null); drawFile(); toast('削除しました');
+        };
+        r.appendChild(op); r.appendChild(rm); fbox.appendChild(r);
+      }else{
+        fbox.appendChild(el('div',null,'<div style="font-size:12px;color:var(--sub);padding:8px 0">ファイルを読み込めませんでした。</div>'));
+      }
+
+    }else if(d.filePath){
+      // Stockから引き継いだファイル。取り込み済みならその場で開ける
+      fbox.appendChild(attachmentRow({name:d.fileName, path:d.filePath, size:d.fileSize}));
+      if(!(S.attIds && S.attIds.has(pathId(d.filePath)))){
+        fbox.appendChild(el('div',null,
+          `<div style="font-size:11px;color:#9aa3b2;margin-top:6px;line-height:1.6">
+           Googleドライブにあるファイルです。アプリで直接開くには、右上の「管理」→「過去の添付ファイルを取り込む」を実行してください。</div>`));
+      }
+
+    }else{
+      // 未添付 → その場で添付できるようにする
+      const dz=el('div','drop sm');
+      dz.innerHTML=`<div class="ph"><b>写真・PDFを添付する</b><span>ドラッグでもOK</span></div>
+        <div class="fn" id="upmsg"></div>`;
+      const pick=el('input'); pick.type='file'; pick.accept='image/*,application/pdf'; pick.style.display='none';
+      const doUp = async f=>{
+        const msg=dz.querySelector('#upmsg');
+        try{
+          msg.textContent='準備しています…';
+          const meta = await saveDocFile(d.id, f, t=>msg.textContent=t);
+          Object.assign(d, meta);
+          await setDoc(doc(db,'documents',d.id), {...meta, updatedAt:nowISO()}, {merge:true});
+          await idbSet('docs_cache', null);
+          drawFile(); toast('添付しました');
+        }catch(e){ msg.innerHTML=`<span style="color:var(--danger)">${esc(e.message)}</span>`; }
+      };
+      dz.onclick=()=>pick.click();
+      pick.onchange=e=>{ const f=e.target.files[0]; if(f) doUp(f); };
+      dz.ondragover=e=>{ e.preventDefault(); dz.classList.add('over'); };
+      dz.ondragleave=()=>dz.classList.remove('over');
+      dz.ondrop=e=>{ e.preventDefault(); dz.classList.remove('over');
+        const f=e.dataTransfer.files[0]; if(f) doUp(f); };
+      fbox.appendChild(dz); fbox.appendChild(pick);
+    }
+
+    // 外部リンク（Googleドライブなど）
+    const lg=el('div','fgrid'); lg.style.marginTop='14px';
+    lg.appendChild(el('label',null,'ファイルのリンク'));
+    const li=el('input'); li.placeholder='任意：Googleドライブの共有リンク'; li.value=d.fileLink||'';
+    li.onchange=async()=>{
+      d.fileLink=li.value.trim();
+      await setDoc(doc(db,'documents',d.id),{fileLink:d.fileLink, updatedAt:nowISO()},{merge:true});
+      await idbSet('docs_cache', null); toast('保存しました');
+    };
+    lg.appendChild(li); fbox.appendChild(lg);
+    if(d.fileLink){
+      const a=el('a',null,'リンクを開く'); a.href=d.fileLink; a.target='_blank'; a.rel='noopener';
+      a.style.cssText='font-size:12px;display:inline-block;margin-top:8px';
+      fbox.appendChild(a);
+    }
+
     if(d.noteId){
       const lk=el('button','btn sm','元のノートを開く'); lk.style.marginTop='10px';
       lk.onclick=()=>{ close(); go('knowledge'); S.noteId=d.noteId; S.results=null; S.editing=false; renderList(); renderDetail(); };
-      bd.appendChild(lk);
+      fbox.appendChild(lk);
     }
-  }
+  };
+  drawFile();
 
   // コメント
   const cw=el('div'); bd.appendChild(cw);
@@ -1094,6 +1713,26 @@ function openDoc(id, editing){
 
   document.body.appendChild(bg); document.body.appendChild(dw);
   if(editing) fVendor.focus();
+}
+
+/* 状態を進める（経理の確認・支払済など）。登録した人に結果を通知する。 */
+async function setStatus(d, status, done){
+  const patch = { status, updatedAt:nowISO(), editor:ME.name };
+  if(status==='unpaid' || status==='hold'){ patch.checkedBy=ME.name; patch.checkedAt=nowISO(); }
+  if(status==='paid'){ patch.paidBy=ME.name; patch.paidAt=nowISO(); }
+  Object.assign(d, patch);
+  await setDoc(doc(db,'documents',d.id), patch, {merge:true});
+  await idbSet('docs_cache', null);
+  if(d.createdByEmail && d.createdByEmail!==ME.email){
+    const msg = { unpaid:'経理が確認しました', hold:'経理が保留にしました。内容を確認してください',
+                  paid:'支払いが完了しました' }[status];
+    if(msg) await pushNotif(d.createdByEmail, 'doc', msg,
+      `${d.vendor||''}　${yen(d.amount)}（${d.store||''}）`, {view:'docs', id:d.id});
+  }
+  buildNotifications();
+  toast(`「${DSTATUS[status]}」にしました`);
+  done && done();
+  renderDocs();
 }
 
 function exportDocsCsv(){
@@ -1177,13 +1816,6 @@ function renderMinutes(){
 
   const todos = allTodos().filter(t=>!t.done);
   const over = todos.filter(t=>t.due && t.due<today());
-  const cards=el('div','cards');
-  const mk=(cls,lb,vl,sfx)=>{ const c=el('div','card'+(cls?' '+cls:''));
-    c.innerHTML=`<div class="lb">${lb}</div><div class="vl">${vl}</div><div class="sfx">${sfx||''}</div>`; return c; };
-  cards.appendChild(mk('','議事録','<span>'+S.minutes.length+'</span><span style="font-size:14px">件</span>',''));
-  cards.appendChild(mk(todos.length?'warn':'','未完了ToDo',todos.length+'<span style="font-size:14px">件</span>',''));
-  cards.appendChild(mk(over.length?'alert':'','期限切れToDo',over.length+'<span style="font-size:14px">件</span>',''));
-  w.appendChild(cards);
 
   const f=el('div','filters');
   const sel=(key,label,opts)=>{
@@ -1210,6 +1842,12 @@ function renderMinutes(){
     }
     return true;
   }).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+
+  const st=el('div','stat');
+  st.innerHTML = `${rows.length}件`
+    + (todos.length ? `　/　未完了ToDo ${todos.length}件` : '')
+    + (over.length ? `　/　<span style="color:var(--danger)">期限切れ ${over.length}件</span>` : '');
+  w.appendChild(st);
 
   if(!S.minutes.length){
     w.appendChild(el('div','empty','議事録がまだありません。「＋ 議事録を作成」から始めてください。'));
@@ -1252,6 +1890,7 @@ async function newMinute(){
 function openMinute(id, editing){
   const m = S.minutes.find(x=>x.id===id); if(!m) return;
   S.minuteId=id;
+  if(m.title) pushRecent('minute', m.id, m.title, `${m.date||''}・${m.store||''}`);
   const bg=el('div','drawer-bg'); const dw=el('div','drawer');
   dw.style.width='min(800px,96vw)';
   const close=()=>{ bg.remove(); dw.remove(); S.minuteId=null; renderMinutes(); };
@@ -1776,6 +2415,9 @@ async function runImport(file){
     $('#cl').onclick=()=>m.remove();
   }
 }
+
+// 動作確認用（実害なし）
+try{ window.__T = { S, go, renderHome, renderDocs, renderMinutes, globalSearch, recents, openDoc, openMinute }; }catch(e){}
 </script>
 </body>
 </html>
