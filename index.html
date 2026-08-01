@@ -247,10 +247,15 @@ $('#signout').onclick = () => signOut(auth).then(()=>location.reload());
 
 async function loadAll(){
   $('#sidebar').innerHTML = '<div style="padding:20px;color:#8892a6;font-size:12px"><span class="spin"></span> 読み込み中</div>';
-  const fs = await getDocs(collection(db,'folders'));
-  S.folders = fs.docs.map(d=>({id:d.id, ...d.data()}));
+  try{
+    const fs = await getDocs(collection(db,'folders'));
+    S.folders = fs.docs.map(d=>({id:d.id, ...d.data()}));
+  }catch(e){
+    // まだ members に自分が登録されていない＝初回。取り込み画面に進む
+    S.folders = [];
+  }
   if(S.folders.length===0){ return offerImport(); }
-  await loadIndex();
+  try{ await loadIndex(); }catch(e){ S.notes = []; }
   renderSidebar(); renderList(); renderDetail();
 }
 
