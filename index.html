@@ -313,6 +313,12 @@ iframe.fprev.pdf{height:420px}
 .cls div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .clu{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f2f4f7;font-size:12px}
 .clu .d{font-size:11px;color:#9aa3b2;margin-left:auto;white-space:nowrap}
+.imgmiss{display:inline-flex;flex-direction:column;align-items:center;gap:5px;
+  border:1px dashed var(--line);border-radius:7px;background:#fafbfc;
+  padding:20px 22px;margin:6px 0;max-width:100%;text-align:center}
+.imgmiss svg{width:26px;height:26px}
+.imgmiss b{font-size:12.5px;font-weight:600;word-break:break-all}
+.imgmiss span{font-size:11px;color:#9aa3b2;line-height:1.6;max-width:280px}
 .tag.click{cursor:pointer}
 .tag.click:hover{border-color:var(--accent);color:var(--accent)}
 .adm{display:flex;flex-direction:column;gap:8px}
@@ -556,6 +562,8 @@ $('#admin').onclick = () => {
       <button data-a="att"><b>過去の添付ファイルを取り込む</b>
         <span>Googleドライブにある請求書PDFなどを、アプリの中で直接開けるようにします。
               いま開けるのは ${n}件です。</span></button>
+      <button data-a="photo"><b>Stockの写真を取り込む</b>
+        <span>本文に貼ってあった写真408枚。「Stockの写真を取り戻す.js」で集めたフォルダを読ませます。</span></button>
       <button data-a="docs"><b>書類台帳の初期データを取り込む</b>
         <span>documents_seed.json.gz を読み込んで、台帳261件を一括登録します。</span></button>
       <button data-a="created"><b>ノートの作成日を取り込む</b>
@@ -570,7 +578,8 @@ $('#admin').onclick = () => {
     b.onclick=async()=>{
       const a=b.dataset.a; m.remove();
       if(a==='clean') openCleanup();
-      if(a==='att')  importAttachments();
+      if(a==='att')   importAttachments();
+      if(a==='photo') importAttachments('photo');
       if(a==='docs') importDocs();
       if(a==='created') importCreated();
       if(a==='cache'){
@@ -1012,7 +1021,8 @@ function renderList(){
   const box=el('div');
   rows.slice(0,300).forEach(n=>{
     const it=el('div','item'+(S.noteId===n.id?' on':''));
-    it.innerHTML = `<h3>${esc(n.title)}</h3><p>${esc(n.preview||'')}</p>
+    const pv = previewText(n);
+    it.innerHTML = `<h3>${esc(n.title)}</h3>${pv?`<p>${esc(pv)}</p>`:''}
       <div class="foot"><span>${esc(n.author||'')}</span><span>${fmt(n.updatedAt)}</span>
       ${n.att?`<span class="badge">添付 ${n.att}</span>`:''}
       ${n.archived?'<span class="badge arc">アーカイブ</span>':''}
@@ -1069,12 +1079,22 @@ async function renderDetail(){
   });
   head.appendChild(tools);
   D.appendChild(head);
+  const bodyText = stripHtml(n.body||'');
+  const echo = !ed && isAttachmentEcho(bodyText, n.attachments, [n.author, n.editor]);
   const body=el('div','body'); body.id='b-edit';
   body.innerHTML = n.body || '<p style="color:#9aa3b2">（本文なし）</p>';
   if(ed) body.contentEditable='true';
+  if(echo){
+    // 本文はファイル名の再掲だけ。下の添付欄と重複するので画面には出さない。
+    body.style.display='none';
+    body.setAttribute('aria-hidden','true');
+  }else{
+    tidyBodyImages(body);
+  }
   D.appendChild(body);
   if((n.attachments||[]).length){
     const a=el('div','attach');
+    if(echo) a.style.borderTop='none';
     a.appendChild(el('h4',null,`添付ファイル ${n.attachments.length}件`));
     n.attachments.forEach(f=>a.appendChild(attachmentRow(f)));
     D.appendChild(a);
@@ -1084,6 +1104,92 @@ async function renderDetail(){
   D.appendChild(cw);
   mountComments(cw, 'note', String(n.id), n.title);
 }
+/* ------------------------------------------------------------
+   Stockは添付を貼ると、本文にファイル名・日時・サイズ・投稿者を
+   自動で書き込んでいた。下の「添付ファイル」欄と丸かぶりになるので、
+   本文がその再掲だけのときは本文を出さない（データは消さない）。
+   ------------------------------------------------------------ */
+function stripAttachmentNoise(text, names, people){
+  let t = String(text||'');
+  (names||[]).forEach(nm=>{
+    if(!nm) return;
+    t = t.split(nm).join(' ');
+    const base = nm.replace(/\.[^.]+$/,'');
+    if(base.length>3) t = t.split(base).join(' ');
+  });
+  (people||[]).forEach(p=>{
+    if(!p) return;
+    t = t.split(p).join(' ');
+    t = t.split(String(p).replace(/[\s　]/g,'')).join(' ');
+  });
+  return t
+    .replace(/[^\s　]+\.(pdf|jpe?g|png|gif|webp|avif|heic|xlsx?|docx?|pptx?|numbers|key|pages|mov|mp4|m4a|zip|gz|csv|txt|webloc)/gi,' ')
+    .replace(/[\d.,]+\s*(KB|MB|GB|バイト|bytes?)/gi,' ')
+    .replace(/\d{1,4}[\/\-年.]\d{1,2}[\/\-月.]\d{1,2}日?/g,' ')
+    .replace(/\d{1,2}:\d{2}(:\d{2})?/g,' ')
+    .replace(/[\s　.,、。・:：\-–—_|/\\()（）\[\]【】'"“”]/g,'')
+    .trim();
+}
+// 本文が添付の再掲だけか？
+function isAttachmentEcho(text, atts, people){
+  if(!atts || !atts.length) return false;
+  const t = String(text||'').trim();
+  if(!t) return true;
+  return stripAttachmentNoise(t, atts.map(a=>a.name), people).length <= 6;
+}
+// 一覧の抜粋用（添付の名前が分からないので文面から判断する）
+function previewText(n){
+  const p = String(n.preview||'');
+  if(!p) return '';
+  if(!n.att) return p;
+  const hasFile = /\.(pdf|jpe?g|png|gif|webp|avif|heic|xlsx?|docx?|pptx?|numbers|key|pages|mov|mp4|m4a|zip|csv)\b/i.test(p);
+  if(!hasFile) return p;
+  if(stripAttachmentNoise(p, [], [n.author, n.editor]).length <= 6) return '';
+  return p;
+}
+
+/* ------------------------------------------------------------
+   本文の中の画像をきれいにする
+   ・Stockが付けていたファイル種別アイコン（同じ絵が461個）は隠す
+   ・本文に貼った写真は Stock のサーバーにあり、URLの有効期限が切れている。
+     壊れた画像アイコンではなく、何の写真だったか分かる枠に置き換える。
+   本文データそのものは書き換えない（画面の見え方だけ）。
+   ------------------------------------------------------------ */
+const DEAD_IMG_HOST = /stock-app\.jp|llstock\.s3|s3[.-][\w-]*amazonaws\.com/i;
+function tidyBodyImages(container){
+  container.querySelectorAll('img').forEach(im=>{
+    const src = im.getAttribute('src') || '';
+    const inWidget = im.closest && im.closest('.stockImageWidget, .attachmentPanel, .photoLi');
+    if(/^data:/i.test(src)){
+      if(inWidget) im.style.display='none';       // ファイル種別アイコン
+      return;
+    }
+    const name = im.getAttribute('alt') || im.getAttribute('title') || '画像';
+    const swap = ()=>{
+      if(!im.parentNode) return;
+      const ph = el('div','imgmiss');
+      ph.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#b9c0cc" stroke-width="1.6"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+          <path d="M21 15l-5-5L5 21"/></svg>
+        <b>${esc(name)}</b>
+        <span>Stockのサーバーに置いたままの写真です。取り込むと、ここに表示されます。</span>`;
+      im.replaceWith(ph);
+    };
+    // 取り込み済みなら、その場で本物の写真に差し替える
+    const pid = (src.match(/\/uploads\/photo\/image\/(\d+)\//)||[])[1];
+    if(pid && S.attIds && S.attIds.has(pathId('stockimg/'+pid))){
+      loadAttachment('stockimg/'+pid).then(v=>{
+        if(v && im.parentNode){ im.src = v.url; im.style.maxWidth='100%'; im.style.height='auto'; }
+        else swap();
+      }).catch(swap);
+      return;
+    }
+    if(DEAD_IMG_HOST.test(src)) swap();
+    else im.addEventListener('error', swap, {once:true});
+  });
+}
+
 /* 添付ファイル1件ぶんの行。アプリに取り込み済みならその場で開ける。 */
 function attachmentRow(f){
   const wrap = el('div');
@@ -1769,13 +1875,18 @@ async function loadAttachment(path, onProgress){
 }
 
 /* 添付ファイルの一括取り込み（Googleドライブのフォルダを選ぶだけ） */
-function importAttachments(){
+function importAttachments(mode){
+  const photo = mode==='photo';
   const m=el('div','modal');
   m.innerHTML=`<div class="box" style="width:600px">
-    <h3>過去の添付ファイルを取り込む</h3>
-    <p>Googleドライブの <b>「stock データ移行 / 添付ファイル」フォルダ</b> を選んでください。<br>
-       中のPDFと画像をアプリの中に入れて、ノートからそのまま開けるようにします。<br>
-       途中で止まっても、もう一度やれば続きから再開します。</p>
+    <h3>${photo?'Stockの写真を取り込む':'過去の添付ファイルを取り込む'}</h3>
+    <p>${photo
+      ? 'スクリプトで取り戻した写真の入ったフォルダを選んでください。<br>'
+        +'ノートの本文に貼ってあった写真が、その場に表示されるようになります。<br>'
+        +'途中で止まっても、もう一度やれば続きから再開します。'
+      : 'Googleドライブの <b>「stock データ移行 / 添付ファイル」フォルダ</b> を選んでください。<br>'
+        +'中のPDFと画像をアプリの中に入れて、ノートからそのまま開けるようにします。<br>'
+        +'途中で止まっても、もう一度やれば続きから再開します。'}</p>
     <div class="drop" id="adrop">
       <div class="ph"><b>フォルダを選ぶ</b><span>「添付ファイル」フォルダごと選択してください</span></div>
     </div>
@@ -1794,7 +1905,7 @@ function importAttachments(){
     ATT_STOP=false;
     $$('#adrop').style.display='none';
     $$('#astop').style.display='inline-block';
-    runAttImport([...e.target.files], $$).finally(()=>{ $$('#astop').style.display='none'; });
+    runAttImport([...e.target.files], $$, mode).finally(()=>{ $$('#astop').style.display='none'; });
   };
 }
 let ATT_STOP = false;
@@ -1810,7 +1921,7 @@ async function withTimeout(promise, ms, msg){
 const hhmm = sec => sec<60 ? `${Math.round(sec)}秒`
   : `${Math.floor(sec/60)}分${String(Math.round(sec%60)).padStart(2,'0')}秒`;
 
-async function runAttImport(files, $$){
+async function runAttImport(files, $$, mode){
   const lg=$$('#alg'); lg.style.display='block';
   const log = t => { lg.textContent += t+'\n'; lg.scrollTop=lg.scrollHeight; };
   const prog = p => $$('#apb').style.width = (p*100).toFixed(1)+'%';
@@ -1841,11 +1952,18 @@ async function runAttImport(files, $$){
     const done = new Set(S.attIds);
     // 「添付ファイル/…」から始まる相対パスに揃える
     const targets = files.filter(f=>VIEWABLE.test(f.name)).map(f=>{
+      if(mode==='photo'){
+        // Stockの写真。ファイル名が「写真ID.jpg」になっている
+        const pid = (f.name.match(/^(\d+)\./)||[])[1];
+        if(!pid) return null;
+        const rel = 'stockimg/'+pid;
+        return {f, rel, id:pathId(rel)};
+      }
       let rel = (f.webkitRelativePath || f.name).normalize('NFC');
       const i = rel.indexOf('添付ファイル/');
       rel = i>=0 ? rel.slice(i) : ('添付ファイル/'+rel);
       return {f, rel, id:pathId(rel)};
-    });
+    }).filter(Boolean);
     const todo = targets.filter(t=>!done.has(t.id));
     const totalMB = todo.reduce((s,t)=>s+t.f.size,0)/1048576;
     log(`開ける形式のファイル ${targets.length}件`);
