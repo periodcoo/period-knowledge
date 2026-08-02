@@ -841,6 +841,9 @@ $('#admin').onclick = () => {
         <span>ふだんは開いたときに自動で立ちます。手で立て直したいときに。</span></button>
       <button data-a="ocr"><b>まとめてOCR</b>
         <span>金額が空の書類を順番に読み取って、候補を保存します。金額は自動では入りません。</span></button>
+      <button data-a="bulkpaid"><b>過去のぶんをまとめて支払済にする</b>
+        <span>「これから来るぶんだけを管理する」ときの区切り作業。指定した日より前に発行された書類を
+              まとめて支払済にします。予定の行は触りません。1件ずつ変更履歴に残ります。</span></button>
       <button data-a="dup"><b>二重払いをチェックする</b>
         <span>取引先・対象月・金額がまったく同じ書類がないか調べます。払う前の最後の確認に。</span></button>
       <button data-a="backup"><b>全データを書き出す（バックアップ）</b>
@@ -862,6 +865,7 @@ $('#admin').onclick = () => {
       if(a==='created') importCreated();
       if(a==='approval') openApprovalSettings();
       if(a==='dup') openDupModal();
+      if(a==='bulkpaid') openBulkPaid();
       if(a==='backup') openBackup();
       if(a==='vendors'){ go('vendors'); importVendorsFromDocs(); }
       if(a==='ocr') batchOcr();
@@ -4340,6 +4344,110 @@ function openDupModal(){
     });
     list.appendChild(box);
   });
+}
+
+/* ============================================================
+   過去のぶんをまとめて支払済にする
+   ─────────────────────────────────────────────
+   「これから来るぶんだけを管理する」ときの区切り作業。
+   区切りの日より前に発行された書類を、まとめて「支払済」にする。
+   予定の行（定期支払いから自動で立ったもの）には触らない。
+   1件ずつ変更履歴に残すので、あとから何を変えたか追える。
+   ============================================================ */
+function bulkPaidTargets(cutoff){
+  return S.docs.filter(d=>
+    !d.deleted &&
+    d.status !== 'planned' &&          // 予定は触らない
+    d.status !== 'paid' &&             // すでに支払済はそのまま
+    (d.issuedAt||'') !== '' &&
+    d.issuedAt <= cutoff
+  );
+}
+function openBulkPaid(){
+  const m=el('div','modal');
+  m.innerHTML=`<div class="box" style="width:560px">
+    <h3>過去のぶんをまとめて支払済にする</h3>
+    <p>これから来るぶんだけを管理できるように、区切りの日<b>以前に発行された</b>書類を「支払済」にします。<br>
+       <b>「予定」の行は触りません。</b>すでに支払済のものもそのままです。<br>
+       1件ずつ変更履歴に残るので、あとから何を変えたか追えます。</p>
+    <div class="fgrid">
+      <label>この日まで</label><input type="date" id="bp-d" value="2026-06-30">
+    </div>
+    <div id="bp-sum" style="margin-top:14px"></div>
+    <div class="bar"><i id="bp-b"></i></div>
+    <div class="log" id="bp-l" style="display:none"></div>
+    <div class="row"><button id="bp-c">閉じる</button>
+      <button id="bp-g" class="primary" disabled>実行する</button></div></div>`;
+  document.body.appendChild(m);
+  const $$ = s => m.querySelector(s);
+  $$('#bp-c').onclick=()=>m.remove();
+
+  let targets=[];
+  const draw=()=>{
+    const cutoff=$$('#bp-d').value;
+    const sum=$$('#bp-sum');
+    if(!cutoff){ sum.innerHTML=''; $$('#bp-g').disabled=true; return; }
+    targets = bulkPaidTargets(cutoff);
+    const by={};
+    targets.forEach(d=>{ by[d.status]=(by[d.status]||0)+1; });
+    const total=targets.reduce((s,d)=>s+(Number(d.amount)||0),0);
+    const already=S.docs.filter(d=>!d.deleted && d.status==='paid' && (d.issuedAt||'')<=cutoff).length;
+    const planned=S.docs.filter(d=>!d.deleted && d.status==='planned' && (d.issuedAt||'')<=cutoff).length;
+    const noDate=S.docs.filter(d=>!d.deleted && !d.issuedAt && d.status!=='paid' && d.status!=='planned').length;
+    sum.innerHTML=`
+      <div class="astat"><b>${targets.length}件</b> を「支払済」にします　合計 ${yen(total)}
+        <span class="fn2">${Object.entries(by).map(([k,v])=>`${DSTATUS[k]||k} ${v}件`).join('　/　')||'—'}</span></div>
+      <div class="help">
+        すでに支払済 ${already}件 はそのまま。
+        ${planned?`予定 ${planned}件 は触りません。`:''}
+        ${noDate?`<br><span style="color:var(--warn)">発行日が空の ${noDate}件 は対象外です（日付が無いと過去かどうか判断できないため）。あとで個別に直してください。</span>`:''}
+      </div>`;
+    $$('#bp-g').disabled = targets.length===0;
+  };
+  $$('#bp-d').onchange=draw;
+  draw();
+
+  $$('#bp-g').onclick=async()=>{
+    const cutoff=$$('#bp-d').value;
+    if(!confirm(`${targets.length}件を「支払済」にします。よろしいですか？`)) return;
+    const go=$$('#bp-g'); go.disabled=true; go.textContent='実行中…';
+    const lg=$$('#bp-l'); lg.style.display='block';
+    const log=t=>{ lg.textContent+=t+'\n'; lg.scrollTop=lg.scrollHeight; };
+    const at=nowISO();
+    const note=`${cutoff} 以前のぶんをまとめて支払済にしました`;
+    try{
+      let b=writeBatch(db), n=0;
+      for(let i=0;i<targets.length;i++){
+        const d=targets[i];
+        const before=d.status;
+        const p={ status:'paid', paidBy:ME.name, paidAt:at, updatedAt:nowISO(), editor:ME.name };
+        b.set(doc(db,'documents',d.id), p, {merge:true});
+        // 変更履歴（1件ずつ残す）
+        b.set(doc(db,'history','h'+Date.now()+i.toString(36)+Math.random().toString(36).slice(2,5)), {
+          id:'bulk'+i, target:'doc', targetId:String(d.id),
+          title:`${d.vendor||''} ${d.period||''}`.slice(0,120),
+          action:'status', note,
+          changes:[{f:'status', label:'状態', from:(DSTATUS[before]||before), to:'支払済'}],
+          by:ME.name, byEmail:ME.email, at:nowISO() });
+        Object.assign(d, p);
+        n+=2;
+        if(n>=400){ await b.commit(); b=writeBatch(db); n=0;
+          $$('#bp-b').style.width=((i+1)/targets.length*100).toFixed(0)+'%';
+          log(`${i+1} / ${targets.length}`); }
+      }
+      await b.commit();
+      $$('#bp-b').style.width='100%';
+      await idbSet('docs_cache', null);
+      log(`${targets.length}件を支払済にしました。`);
+      go.textContent='完了';
+      buildNotifications();
+      if(S.view==='docs') renderDocs(); else if(S.view==='home') renderHome();
+      toast(`${targets.length}件を支払済にしました`);
+    }catch(e){
+      log('エラー: '+e.message);
+      go.disabled=false; go.textContent='もう一度';
+    }
+  };
 }
 
 /* ============================================================
