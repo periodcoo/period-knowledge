@@ -1490,10 +1490,12 @@ async function compressImage(file, onProgress){
 // ファイルを Firestore の docFiles/{書類ID} に保存する
 async function saveDocFile(docId, file, onProgress){
   let blob = file, type = file.type || 'application/octet-stream', name = file.name;
-  if(/^image\//.test(type)){
-    blob = await compressImage(file, onProgress);
-    type = 'image/jpeg';
-    name = name.replace(/\.[^.]+$/,'') + '.jpg';
+  if(DECODABLE.test(name) || /^image\/(jpeg|png|webp|gif|avif)$/.test(type)){
+    try{
+      blob = await compressImage(file, onProgress);
+      type = 'image/jpeg';
+      name = name.replace(/\.[^.]+$/,'') + '.jpg';
+    }catch(e){ blob = file; }
   }
   if(blob.size > MAX_BYTES){
     throw new Error(/pdf/i.test(type)
@@ -1836,6 +1838,8 @@ const MIME = { pdf:'application/pdf', jpg:'image/jpeg', jpeg:'image/jpeg', png:'
                webloc:'application/xml' };
 // ブラウザでそのまま開けるもの
 const CAN_PREVIEW = /\.(pdf|jpe?g|png|webp|avif|gif|m4a|mp3|wav|mov|mp4|txt|csv)$/i;
+// ブラウザが中身を読める画像（HEICは読めないので縮小しない）
+const DECODABLE = /\.(jpe?g|png|webp|gif|avif|bmp)$/i;
 
 // パスから決まるID（NFC正規化してから64bitハッシュ）
 function pathId(p){
@@ -2026,7 +2030,7 @@ async function runAttImport(files, $$, mode){
     // 小さいものを先に。早い段階で「進んでいる」ことが分かるようにする
     todo.sort((a,b)=>a.f.size-b.f.size);
 
-    let b = writeBatch(db), ops=0, bytes=0, okCount=0, ngCount=0;
+    let b = writeBatch(db), ops=0, bytes=0, okCount=0, ngCount=0, ngRun=0;
     // 送信に失敗しても、書き込み枠は必ず新しいものに入れ替える
     // （使い終わった枠を使い回すと、以降すべてエラーになるため）
     const flush = async ()=>{
@@ -2062,9 +2066,11 @@ async function runAttImport(files, $$, mode){
       try{
         const ext = (f.name.split('.').pop()||'').toLowerCase();
         let blob = f, type = MIME[ext] || f.type || 'application/octet-stream';
-        // 画像は縮めてから入れる（PDFはそのまま）
-        if(/^image\//.test(type) && f.size > CHUNK){
-          blob = await compressImage(f); type = 'image/jpeg';
+        // 画像は縮めてから入れる。ただしブラウザが読めない形式（HEICなど）はそのまま。
+        if(DECODABLE.test(f.name) && f.size > CHUNK){
+          try{
+            blob = await compressImage(f); type = 'image/jpeg';
+          }catch(e){ blob = f; }          // 縮められなければ元のまま入れる
         }
         // Googleドライブの「オンラインのみ」ファイルは読むのに時間がかかることがある
         const u8 = new Uint8Array(await withTimeout(blob.arrayBuffer(), 90000,
@@ -2080,20 +2086,21 @@ async function runAttImport(files, $$, mode){
         b.set(doc(db,'attFiles',id), { name:f.name, type, size:u8.length, chunks, path:rel });
         ops++;
         if(ops>=100 || bytes > 4000000) await flush();
-        done.add(id); okCount++; doneBytes += f.size;
+        done.add(id); okCount++; ngRun=0; doneBytes += f.size;
         const sec = (Date.now()-tf)/1000;
         if(sec > 5) log(`△ ${f.name.slice(0,30)}（${mb(f.size)}）に ${hhmm(sec)} かかりました`);
       }catch(err){
-        ngCount++; doneBytes += f.size;
+        ngCount++; ngRun++; doneBytes += f.size;
         const msg = String(err && err.message || err);
         log(`× ${f.name}：${msg}`);
         if(/permission|insufficient|PERMISSION_DENIED/i.test(msg)){
           log('\n【中断】書き込みを拒否されました。Firestoreのルールを貼り直してから、もう一度お試しください。');
           await saveIndex(); return;
         }
-        if(ngCount >= 10){
-          log(`\n【中断】失敗が ${ngCount}件 続いたので止めました。`);
-          log('ここまでのぶんは保存しました。原因を直してから、もう一度実行すれば続きから再開します。');
+        // 書き込みそのものが続けて失敗したときだけ止める
+        if(ngRun >= 25){
+          log(`\n【中断】${ngRun}件 続けて失敗したので止めました。`);
+          log('ここまでのぶんは保存しました。もう一度実行すれば続きから再開します。');
           await saveIndex(); return;
         }
       }
