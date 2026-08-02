@@ -1200,30 +1200,64 @@ function attachmentRow(f){
   const pv = el('div'); pv.style.cssText='margin:10px 0 4px';
   let open=false;
 
+  const canPreview = CAN_PREVIEW.test(f.name||'');
+
   if(inApp){
-    const b=el('button',null,'開く');
-    b.style.fontWeight='600';
-    b.onclick=async()=>{
-      if(open){ pv.innerHTML=''; open=false; b.textContent='開く'; return; }
-      b.textContent='読み込み中…'; b.disabled=true;
-      pv.innerHTML='<div style="padding:16px;color:#9aa3b2;font-size:12px"><span class="spin"></span> 読み込み中</div>';
+    // 中身をアプリから取り出す（開く／再生／ダウンロード 共通）
+    const fetchIt = async (btn)=>{
+      const old = btn.textContent;
+      btn.textContent='読み込み中…'; btn.disabled=true;
       try{
-        const v = await loadAttachment(f.path, t=>{ const s=pv.querySelector('div'); if(s) s.innerHTML=`<span class="spin"></span> ${esc(t)}`; });
+        const v = await loadAttachment(f.path, t=>{ btn.textContent=t; });
+        btn.textContent=old; btn.disabled=false;
+        return v;
+      }catch(e){
+        btn.textContent=old; btn.disabled=false;
+        pv.innerHTML=`<div style="font-size:12px;color:var(--danger)">${esc(e.message)}</div>`;
+        return null;
+      }
+    };
+
+    if(canPreview){
+      const b=el('button',null,'開く');
+      b.style.fontWeight='600';
+      b.onclick=async()=>{
+        if(open){ pv.innerHTML=''; open=false; b.textContent='開く'; return; }
+        pv.innerHTML='<div style="padding:16px;color:#9aa3b2;font-size:12px"><span class="spin"></span> 読み込み中</div>';
+        const v = await fetchIt(b);
         pv.innerHTML='';
-        if(!v){ pv.innerHTML='<div style="font-size:12px;color:var(--sub)">アプリの中に見つかりませんでした。</div>'; }
-        else if(/^image\//.test(v.type)){
+        if(!v){ pv.innerHTML='<div style="font-size:12px;color:var(--sub)">アプリの中に見つかりませんでした。</div>'; return; }
+        const t = v.type||'';
+        if(/^image\//.test(t)){
           const a2=el('a'); a2.href=v.url; a2.target='_blank'; a2.rel='noopener';
           const im=el('img'); im.src=v.url; im.className='fprev'; a2.appendChild(im); pv.appendChild(a2);
+        }else if(/^audio\//.test(t)){
+          const au=el('audio'); au.src=v.url; au.controls=true; au.style.cssText='width:100%;margin-top:4px';
+          pv.appendChild(au);
+        }else if(/^video\//.test(t)){
+          const vd=el('video'); vd.src=v.url; vd.controls=true; vd.className='fprev';
+          vd.style.maxHeight='420px'; pv.appendChild(vd);
         }else{
           const fr=el('iframe'); fr.src=v.url; fr.className='fprev pdf'; pv.appendChild(fr);
           const ob=el('button','btn sm','別タブで大きく見る'); ob.style.marginTop='8px';
           ob.onclick=()=>window.open(v.url,'_blank','noopener'); pv.appendChild(ob);
         }
         open=true; b.textContent='閉じる';
-      }catch(e){ pv.innerHTML=`<div style="font-size:12px;color:var(--danger)">${esc(e.message)}</div>`; }
-      b.disabled=false;
+      };
+      r.appendChild(b);
+    }
+
+    // ダウンロード（Numbers・Excel・Keynote など、ブラウザで開けないもの用）
+    const dl=el('button',null, canPreview ? '保存' : 'ダウンロード');
+    if(!canPreview) dl.style.fontWeight='600';
+    dl.onclick=async()=>{
+      const v = await fetchIt(dl);
+      if(!v) return;
+      const a2=el('a'); a2.href=v.url; a2.download=f.name||'file';
+      document.body.appendChild(a2); a2.click(); a2.remove();
+      toast('ダウンロードしました');
     };
-    r.appendChild(b);
+    r.appendChild(dl);
   }
 
   const cp=el('button',null,'パスをコピー');
@@ -1786,9 +1820,22 @@ async function openCleanup(){
    1MBを超えるものは900KBずつに割って、開くときに繋ぎ直す。
    ============================================================ */
 const CHUNK = 900000;
-const VIEWABLE = /\.(pdf|jpe?g|png|webp|avif|gif)$/i;
+// 取り込む対象。表示できないものも「ダウンロードして開く」ために入れておく。
+const VIEWABLE = /\.[A-Za-z0-9]{1,8}$/;
+const SKIP_EXT = /\.(ds_store|localized)$/i;
+const MAX_FILE = 80 * 1024 * 1024;        // 1件80MBまで
 const MIME = { pdf:'application/pdf', jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png',
-               webp:'image/webp', avif:'image/avif', gif:'image/gif' };
+               webp:'image/webp', avif:'image/avif', gif:'image/gif', heic:'image/heic',
+               m4a:'audio/mp4', mp3:'audio/mpeg', wav:'audio/wav',
+               mov:'video/quicktime', mp4:'video/mp4',
+               xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+               docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+               pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+               csv:'text/csv', txt:'text/plain', zip:'application/zip',
+               numbers:'application/zip', pages:'application/zip', key:'application/zip',
+               webloc:'application/xml' };
+// ブラウザでそのまま開けるもの
+const CAN_PREVIEW = /\.(pdf|jpe?g|png|webp|avif|gif|m4a|mp3|wav|mov|mp4|txt|csv)$/i;
 
 // パスから決まるID（NFC正規化してから64bitハッシュ）
 function pathId(p){
@@ -1951,7 +1998,12 @@ async function runAttImport(files, $$, mode){
     await loadAttIndex();
     const done = new Set(S.attIds);
     // 「添付ファイル/…」から始まる相対パスに揃える
-    const targets = files.filter(f=>VIEWABLE.test(f.name)).map(f=>{
+    let skipped = 0;
+    const targets = files.filter(f=>{
+      if(!VIEWABLE.test(f.name) || SKIP_EXT.test(f.name) || f.name.startsWith('.')) return false;
+      if(f.size > MAX_FILE){ skipped++; return false; }
+      return true;
+    }).map(f=>{
       if(mode==='photo'){
         // Stockの写真。ファイル名が「写真ID.jpg」になっている
         const pid = (f.name.match(/^(\d+)\./)||[])[1];
@@ -1966,7 +2018,7 @@ async function runAttImport(files, $$, mode){
     }).filter(Boolean);
     const todo = targets.filter(t=>!done.has(t.id));
     const totalMB = todo.reduce((s,t)=>s+t.f.size,0)/1048576;
-    log(`開ける形式のファイル ${targets.length}件`);
+    log(`対象のファイル ${targets.length}件` + (skipped?`（80MBを超える ${skipped}件は対象外）`:''));
     log(`取り込み済み ${targets.length-todo.length}件 / これから ${todo.length}件（${totalMB.toFixed(0)}MB）`);
     if(!todo.length){ log('すべて取り込み済みです。'); prog(1); return; }
     log(`小さいものから順に入れます。10件ごとに保存するので、`);
