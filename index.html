@@ -4382,7 +4382,7 @@ function openBulkPaid(){
   const $$ = s => m.querySelector(s);
   $$('#bp-c').onclick=()=>m.remove();
 
-  let targets=[];
+  let targets=[], armed=false;
   const draw=()=>{
     const cutoff=$$('#bp-d').value;
     const sum=$$('#bp-sum');
@@ -4404,13 +4404,29 @@ function openBulkPaid(){
       </div>`;
     $$('#bp-g').disabled = targets.length===0;
   };
-  $$('#bp-d').onchange=draw;
+  $$('#bp-d').onchange=()=>{
+    // 日付を変えたら確認をやり直す
+    armed=false;
+    const g=$$('#bp-g'); g.textContent='実行する'; g.style.background=''; g.style.borderColor='';
+    const wv=$$('#bp-warn'); if(wv) wv.remove();
+    draw();
+  };
   draw();
 
+  // 確認は画面の中で2段階にする（ブラウザのダイアログは使わない）
   $$('#bp-g').onclick=async()=>{
     const cutoff=$$('#bp-d').value;
-    if(!confirm(`${targets.length}件を「支払済」にします。よろしいですか？`)) return;
-    const go=$$('#bp-g'); go.disabled=true; go.textContent='実行中…';
+    const go=$$('#bp-g');
+    if(!armed){
+      armed=true;
+      go.textContent=`本当に ${targets.length}件 を支払済にする`;
+      go.style.background='var(--danger)'; go.style.borderColor='var(--danger)';
+      $$('#bp-sum').insertAdjacentHTML('beforeend',
+        '<div class="help" id="bp-warn" style="color:var(--danger)">もう一度押すと実行します。やめるときは「閉じる」を押してください。</div>');
+      return;
+    }
+    go.disabled=true; go.textContent='実行中…';
+    go.style.background=''; go.style.borderColor='';
     const lg=$$('#bp-l'); lg.style.display='block';
     const log=t=>{ lg.textContent+=t+'\n'; lg.scrollTop=lg.scrollHeight; };
     const at=nowISO();
