@@ -460,6 +460,54 @@ iframe.fprev.pdf{height:420px}
 /* 下部ナビ（スマホのみ） */
 .tabbar{display:none}
 
+/* ---------- フォルダの追加・編集 ---------- */
+.fold{position:relative}
+.fold .fedit{display:none;position:absolute;right:6px;top:5px;width:22px;height:22px;border-radius:4px;
+  color:#8892a6;font-size:14px;line-height:20px;text-align:center}
+.fold:hover .fedit{display:block}
+.fold .fedit:hover{background:var(--navy3);color:#fff}
+.fold:hover .n{opacity:0}
+.sec-h .add{margin-left:6px;font-size:14px;color:#6f7a92;line-height:1;padding:0 4px;border-radius:3px}
+.sec-h .add:hover{color:#fff;background:var(--navy3)}
+.sbfoot{padding:12px 16px 26px}
+.sbfoot button{width:100%;border:1px dashed var(--line2);border-radius:5px;padding:9px 0;
+  font-size:12px;color:#9aa4b8}
+.sbfoot button:hover{border-color:var(--accent2);color:#fff;background:var(--navy2)}
+
+/* ---------- 二重払いの警告 ---------- */
+.dup{background:#fdf3f2;border:1px solid #eed6d2;border-radius:6px;padding:13px 17px;margin-top:14px}
+.dup b{font-size:13px;color:var(--danger)}
+.dup .mt{font-size:12px;color:var(--sub);margin-top:3px;line-height:1.65}
+.dupg{border:1px solid var(--line);border-radius:6px;margin-top:10px;background:#fff;overflow:hidden}
+.dupg .gh{background:#fafbfc;padding:8px 13px;font-size:12px;border-bottom:1px solid var(--line);
+  display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.dupg .gh b{color:var(--text);font-size:12.5px}
+.dupg .gr{padding:8px 13px;border-bottom:1px solid #f2f4f7;font-size:12.5px;cursor:pointer;
+  display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.dupg .gr:last-child{border-bottom:none}
+.dupg .gr:hover{background:#fafbfc}
+.dupg .gr .d{margin-left:auto;color:#9aa3b2;font-size:11.5px;white-space:nowrap}
+
+/* ---------- 月次レポート ---------- */
+.rep{overflow:auto;border:1px solid var(--line);border-radius:6px;background:#fff;margin-top:6px}
+table.rept{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+table.rept th{font-size:11px;color:var(--sub);padding:9px 10px;background:#fafbfc;
+  border-bottom:1px solid var(--line);white-space:nowrap;text-align:right;position:sticky;top:0}
+table.rept th:first-child{text-align:left;left:0;z-index:2}
+table.rept td{padding:8px 10px;border-bottom:1px solid #f2f4f7;font-size:12.5px;text-align:right;white-space:nowrap}
+table.rept td:first-child{text-align:left;font-weight:600;background:#fff;position:sticky;left:0}
+table.rept tr:last-child td{border-bottom:none;background:#fafbfc;font-weight:600}
+table.rept td.z{color:#c8ced8}
+.bars{margin-top:18px}
+.bar2{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:12.5px}
+.bar2 .lb{width:170px;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar2 .tr{flex:1;background:#f2f4f7;border-radius:3px;height:16px;overflow:hidden;min-width:60px}
+.bar2 .tr i{display:block;height:100%;background:var(--accent2);border-radius:3px}
+.bar2 .vl{width:110px;text-align:right;flex:none;font-variant-numeric:tabular-nums}
+.delta{font-size:11.5px;margin-left:6px}
+.delta.up{color:var(--danger)}
+.delta.dn{color:var(--ok)}
+
 @media(max-width:1100px){#view-knowledge.on{grid-template-columns:210px 300px 1fr}.nav button{padding:7px 10px}
   .gsearch{max-width:230px}}
 
@@ -546,6 +594,10 @@ iframe.fprev.pdf{height:420px}
     padding:11px 18px;border-bottom:1px solid var(--line);background:#fafbfc;position:sticky;top:0;z-index:3;width:100%}
   .list-head{padding:13px 18px}
   .item{padding:15px 18px}
+  .fold .fedit{display:block}
+  .fold:hover .n{opacity:1}
+  .bar2 .lb{width:110px}
+  .bar2 .vl{width:90px}
 
   /* 入力まわりを指で押しやすく */
   .btn{padding:10px 16px;font-size:13.5px}
@@ -599,6 +651,7 @@ iframe.fprev.pdf{height:420px}
     <div class="view" id="view-minutes"></div>
     <div class="view" id="view-vendors"></div>
     <div class="view" id="view-recurring"></div>
+    <div class="view" id="view-report"></div>
   </div>
 
   <div class="tabbar" id="tabbar"></div>
@@ -669,8 +722,10 @@ const S = {
   // 台帳の表示（表 / カレンダー）（A-5）
   docView: localStorage.getItem('period_stock_docview') || 'table',
   calYM: null,
+  // 月次レポート
+  repYear: null, repScope:'請求書',
   // 全体設定（承認フローなど）（A-6）
-  settings:{ approvalOn:false, approvalMin:100000, approvalRoles:['manager','admin'] },
+  settings:{ approvalOn:false, approvalMin:100000, approvalRoles:['manager','admin'], dupIgnore:[] },
 };
 
 const CFG_KEY = 'period_stock_cfg';
@@ -788,6 +843,11 @@ $('#admin').onclick = () => {
         <span>ふだんは開いたときに自動で立ちます。手で立て直したいときに。</span></button>
       <button data-a="ocr"><b>まとめてOCR</b>
         <span>金額が空の書類を順番に読み取って、候補を保存します。金額は自動では入りません。</span></button>
+      <button data-a="dup"><b>二重払いをチェックする</b>
+        <span>取引先・対象月・金額がまったく同じ書類がないか調べます。払う前の最後の確認に。</span></button>
+      <button data-a="backup"><b>全データを書き出す（バックアップ）</b>
+        <span>ノート・台帳・議事録・取引先・コメント・変更履歴を1ファイルにまとめて保存します。
+              Stockのときのように「出せなくて困る」ことを起こさないための保険です。</span></button>
       <button data-a="cache"><b>端末のキャッシュを消す</b>
         <span>表示がおかしいときに。次に開いたとき読み直します。</span></button>
     </div>
@@ -803,6 +863,8 @@ $('#admin').onclick = () => {
       if(a==='docs') importDocs();
       if(a==='created') importCreated();
       if(a==='approval') openApprovalSettings();
+      if(a==='dup') openDupModal();
+      if(a==='backup') openBackup();
       if(a==='vendors'){ go('vendors'); importVendorsFromDocs(); }
       if(a==='ocr') batchOcr();
       if(a==='rec'){
@@ -823,7 +885,7 @@ $('#admin').onclick = () => {
    ナビゲーション
    ============================================================ */
 const NAVS = [['home','ホーム'],['knowledge','ナレッジ'],['docs','請求書・納品書'],
-              ['recurring','定期支払い'],['vendors','取引先'],['minutes','議事録']];
+              ['report','月次レポート'],['recurring','定期支払い'],['vendors','取引先'],['minutes','議事録']];
 // スマホの下部タブは5つまで。使う頻度の高いものだけ出す
 const TABS = [
   ['home','ホーム',   '<path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>'],
@@ -861,6 +923,7 @@ function go(v){
   if(v==='minutes') renderMinutes();
   if(v==='vendors') renderVendors();
   if(v==='recurring') renderRecurring();
+  if(v==='report') renderReport();
   if(v==='knowledge') kStep(S.noteId ? 2 : 1);
   closeGpop();
 }
@@ -1131,8 +1194,12 @@ function renderHome(){
     const overTodos = myTodos.filter(t=>t.due && t.due < today());
     const yensum = a => a.reduce((s,d)=>s+(Number(d.amount)||0),0);
 
+    const dups = openDuplicates();
+
     const todo=[];
     const goDocs = st => ()=>{ S.dfil={...emptyDfil(), status:st}; S.docView='table'; go('docs'); };
+    if(dups.length) todo.push(['alert', `二重払いのおそれ ${dups.length}件`,
+      `${yen(dups.reduce((s,g)=>s+g.amount,0))} ぶんが重なっています`, ()=>openDupModal()]);
     if(miss.length) todo.push(['alert', `請求書が届いていません ${miss.length}件`,
       '定期支払いの予定日を過ぎています', ()=>go('recurring')]);
     if(approval.length && isManager()) todo.push(['warn', `あなたの承認待ち ${approval.length}件`,
@@ -1215,28 +1282,123 @@ function renderSidebar(){
   const pool = notesInMode();
   const counts={};
   pool.forEach(n=>{ counts[n.folderId]=(counts[n.folderId]||0)+1; });
+  // ノートが1件も無いフォルダ（作ったばかりのもの）は「実務」タブに出す
+  const totals={};
+  S.notes.forEach(n=>{ totals[n.folderId]=(totals[n.folderId]||0)+1; });
+  const visible = f => counts[f.id] || (S.mode==='work' && !totals[f.id]);
+
   const bySec={};
-  S.folders.forEach(f=>{ if(!counts[f.id]) return; (bySec[f.section] = bySec[f.section]||[]).push(f); });
+  S.folders.forEach(f=>{ if(!visible(f)) return; (bySec[f.section] = bySec[f.section]||[]).push(f); });
   Object.keys(bySec).sort().forEach(sec=>{
-    const total = bySec[sec].reduce((a,f)=>a+counts[f.id],0);
+    const total = bySec[sec].reduce((a,f)=>a+(counts[f.id]||0),0);
     const wrap = el('div','sec');
     const open = S.open[sec] === true;   // はじめは閉じておく
     const h = el('div','sec-h',
-      `<span class="arrow${open?' open':''}">&#9654;</span><span>${esc(sec)}</span><span class="cnt">${total}</span>`);
+      `<span class="arrow${open?' open':''}">&#9654;</span><span>${esc(sec)}</span>`);
+    const add = el('button','add','＋'); add.title=`${sec} にフォルダを追加`;
+    add.onclick=e=>{ e.stopPropagation(); openFolder(null, sec); };
+    h.appendChild(add);
+    h.appendChild(el('span','cnt',String(total)));
     h.onclick=()=>{ S.open[sec]=!open; renderSidebar(); };
     wrap.appendChild(h);
     if(open){
       bySec[sec].sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(f=>{
+        const c = counts[f.id]||0;
         const d=el('div','fold'+(S.folderId===f.id?' on':''),
-          `<span>${esc(f.name)}</span><span class="n">${counts[f.id]}</span>`);
+          `<span>${esc(f.name)}</span><span class="n">${c}</span>`);
         d.onclick=()=>{ S.folderId=f.id; S.results=null; S.noteQ='';
           renderSidebar(); renderList(); renderDetail(); kStep(1); };
+        const eb=el('button','fedit','⋯'); eb.title='このフォルダの設定';
+        eb.onclick=e=>{ e.stopPropagation(); openFolder(f.id); };
+        d.appendChild(eb);
         wrap.appendChild(d);
       });
     }
     sb.appendChild(wrap);
   });
+
+  const foot=el('div','sbfoot');
+  const nb=el('button',null,'＋ フォルダを追加');
+  nb.onclick=()=>openFolder(null);
+  foot.appendChild(nb);
+  sb.appendChild(foot);
 }
+
+/* フォルダの追加・名前の変更・削除 */
+function openFolder(id, presetSection){
+  const isNew = !id;
+  const f = isNew ? null : S.folders.find(x=>x.id===id);
+  if(!isNew && !f) return;
+  const used = S.notes.filter(n=>String(n.folderId)===String(id)).length;
+  const sections = [...new Set(S.folders.map(x=>x.section).filter(Boolean))].sort();
+
+  const m=el('div','modal');
+  m.innerHTML=`<div class="box" style="width:460px">
+    <h3>${isNew?'フォルダを追加':'フォルダの設定'}</h3>
+    <p>${isNew
+      ? 'ノートを入れる場所を作ります。区分は左のサイドバーの見出し（①株式会社Period. など）です。'
+      : `名前を変えても、中のノート ${used}件 はそのまま残ります。`}</p>
+    <div class="fgrid">
+      <label>フォルダ名</label><input id="f-name" value="${esc(isNew?'':f.name)}" placeholder="例：2026年 契約書">
+      <label>区分</label><input id="f-sec" list="f-secs" value="${esc(isNew?(presetSection||sections[0]||'その他'):f.section)}" placeholder="①株式会社Period.">
+    </div>
+    <datalist id="f-secs">${sections.map(s=>`<option value="${esc(s)}">`).join('')}</datalist>
+    <div class="help">区分は新しい名前を打てば、その見出しごと新しく作られます。</div>
+    <div class="row">
+      ${(!isNew && used===0)?'<button id="f-del" style="color:var(--danger);margin-right:auto">削除</button>':''}
+      <button id="f-c">キャンセル</button>
+      <button id="f-s" class="primary">${isNew?'追加する':'保存'}</button>
+    </div>
+    ${(!isNew && used>0)?`<div class="help" style="text-align:right">中にノートがあるフォルダは消せません（${used}件）。空にしてから消してください。</div>`:''}
+  </div>`;
+  document.body.appendChild(m);
+  const $$ = s => m.querySelector(s);
+  $$('#f-c').onclick=()=>m.remove();
+  $$('#f-name').focus();
+
+  const del = $$('#f-del');
+  if(del) del.onclick=async()=>{
+    if(!confirm(`フォルダ「${f.name}」を消します。よろしいですか？`)) return;
+    await deleteDoc(doc(db,'folders',String(f.id)));
+    await logChange('folder', f.id, f.name, null, null, 'delete');
+    S.folders = S.folders.filter(x=>x.id!==f.id);
+    if(S.folderId===f.id) S.folderId=null;
+    m.remove(); renderSidebar(); renderList(); renderDetail(); toast('削除しました');
+  };
+
+  $$('#f-s').onclick=async()=>{
+    const name=$$('#f-name').value.trim();
+    const sec =$$('#f-sec').value.trim() || 'その他';
+    if(!name) return alert('フォルダ名を入れてください。');
+    const dup = S.folders.find(x=>x.name===name && x.section===sec && x.id!==id);
+    if(dup) return alert('同じ区分に同じ名前のフォルダがすでにあります。');
+    const btn=$$('#f-s'); btn.disabled=true;
+    if(isNew){
+      const nf={ id:'f'+Date.now(), name, section:sec,
+                 createdBy:ME.name, createdAt:nowISO(), updatedAt:nowISO() };
+      await setDoc(doc(db,'folders',nf.id), nf);
+      await logChange('folder', nf.id, name, null, nf, 'create');
+      S.folders.push(nf);
+      S.open[sec]=true; S.folderId=nf.id; S.mode='work'; S.results=null;
+      m.remove(); renderSidebar(); renderList(); renderDetail();
+      toast('フォルダを作りました。「＋ 新規ノート」から書けます');
+    }else{
+      const before={name:f.name, section:f.section};
+      const renamed = f.name!==name;
+      f.name=name; f.section=sec; f.updatedAt=nowISO(); f.editor=ME.name;
+      await setDoc(doc(db,'folders',String(f.id)), f);
+      await logChange('folder', f.id, name, before, {name, section:sec}, 'update');
+      if(renamed){
+        // 一覧・検索に出る名前もそろえる
+        S.notes.forEach(n=>{ if(String(n.folderId)===String(f.id)) n.folder=name; });
+        try{ await rebuildIndex(); }catch(e){}
+      }
+      S.open[sec]=true;
+      m.remove(); renderSidebar(); renderList(); renderDetail(); toast('保存しました');
+    }
+  };
+}
+
 /* ---------- 並び替え ---------- */
 const NOTE_SORTS = [
   ['updated_desc', '更新が新しい順'],
@@ -1320,9 +1482,14 @@ function renderList(){
     const b=el('button','newbtn','＋ 新規ノート'); b.onclick=newNote; head.appendChild(b);
   }
   L.appendChild(head);
-  if(!rows.length){ L.appendChild(el('div','empty','ノートがありません')); return; }
   // スマホ：フォルダ一覧へ戻る
   { const bk=el('button','kback','← フォルダ'); bk.onclick=()=>kStep(0); L.insertBefore(bk, L.firstChild); }
+  if(!rows.length){
+    L.appendChild(el('div','empty', S.folderId
+      ? 'このフォルダにはまだノートがありません。<br>上の「＋ 新規ノート」から書けます。'
+      : 'ノートがありません'));
+    return;
+  }
   const box=el('div');
   rows.slice(0,300).forEach(n=>{
     const it=el('div','item'+(S.noteId===n.id?' on':''));
@@ -1721,6 +1888,18 @@ function renderDocs(){
     const b=el('button','btn primary sm','承認待ちだけ表示');
     b.onclick=()=>{ S.dfil={...emptyDfil(), status:'approval'}; renderDocs(); };
     bn.appendChild(b); w.appendChild(bn);
+  }
+
+  // 二重払いのおそれ（追加①）
+  const dups = openDuplicates();
+  if(dups.length){
+    const b=el('div','dup');
+    b.innerHTML=`<b>二重払いのおそれ（${dups.length}件）</b>
+      <div class="mt">取引先・対象月・金額がまったく同じ書類が並んでいます。
+        合計 ${yen(dups.reduce((s,g)=>s+g.amount,0))}。払う前に確かめてください。</div>`;
+    const btn=el('button','btn primary sm','中身を見る'); btn.style.marginTop='10px';
+    btn.onclick=()=>openDupModal();
+    b.appendChild(btn); w.appendChild(b);
   }
 
   // 届いていない請求書（A-1）
@@ -3075,8 +3254,9 @@ const HLABEL = {
   bankName:'金融機関', bankBranch:'支店', bankType:'預金種別', bankNumber:'口座番号', bankHolder:'口座名義',
   contact:'担当者', tel:'電話', email:'メール', contractLink:'契約書のリンク',
   active:'有効', dayOfMonth:'発生日', label:'名称', startYM:'開始月', endYM:'終了月',
+  section:'区分', folder:'フォルダ',
 };
-const HTARGET = { doc:'書類', minute:'議事録', vendor:'取引先', rule:'定期支払い' };
+const HTARGET = { doc:'書類', minute:'議事録', vendor:'取引先', rule:'定期支払い', folder:'フォルダ' };
 
 function hval(field, v){
   if(v===undefined || v===null || v==='') return '（空）';
@@ -4068,6 +4248,310 @@ function openApprovalSettings(){
 }
 
 /* ============================================================
+   二重払いの検知（追加①）
+   ─────────────────────────────────────────────
+   同じ取引先・同じ対象月・同じ金額の書類が2件以上あったら知らせる。
+   請求書の再送、登録のダブり、月をまたいだ重複入力を、支払う前に見つけるためのもの。
+   「これは別物」と判断したら、その組み合わせは以後出さない。
+   ============================================================ */
+const dupKey = d => `${d.vendor}|${d.period || (d.issuedAt||'').slice(0,7)}|${Number(d.amount)}`;
+
+function findDuplicates(){
+  const ignore = new Set(S.settings.dupIgnore || []);
+  const rows = S.docs.filter(d=>!d.deleted && d.status!=='planned'
+    && d.vendor && d.amount!=null && d.amount!=='' && Number(d.amount)>0);
+  const g = new Map();
+  rows.forEach(d=>{
+    const k = dupKey(d);
+    if(ignore.has(k)) return;
+    if(!g.has(k)) g.set(k, []);
+    g.get(k).push(d);
+  });
+  return [...g.entries()]
+    .filter(([,v])=>v.length>1)
+    .map(([k,v])=>({
+      key:k, kind:'same',
+      vendor:v[0].vendor, period:v[0].period || (v[0].issuedAt||'').slice(0,7),
+      amount:Number(v[0].amount),
+      // まだ払っていないものが混じっているかどうかで、危なさが変わる
+      risk: v.some(d=>OPEN_ST.includes(d.status)) ? 'open' : 'paid',
+      rows:v.slice().sort((a,b)=>String(a.issuedAt||'').localeCompare(String(b.issuedAt||'')))
+    }))
+    .sort((a,b)=> (a.risk==='open'?0:1)-(b.risk==='open'?0:1) || b.amount-a.amount);
+}
+/* まだ払っていないものを含む＝いま止められるもの */
+const openDuplicates = () => findDuplicates().filter(g=>g.risk==='open');
+
+function openDupModal(){
+  const groups = findDuplicates();
+  const m=el('div','modal');
+  m.innerHTML=`<div class="box" style="width:640px">
+    <h3>二重払いのおそれ</h3>
+    <p>取引先・対象月・金額がまったく同じ書類が2件以上あります。<br>
+       請求書の再送や登録のダブりが原因のことが多いです。<b>払う前に</b>どちらかを消してください。</p>
+    <div id="dl"></div>
+    <div class="row"><button id="dc">閉じる</button></div></div>`;
+  document.body.appendChild(m);
+  const list=m.querySelector('#dl');
+  m.querySelector('#dc').onclick=()=>m.remove();
+  if(!groups.length){
+    list.innerHTML='<div class="empty">重なっている書類はありません</div>';
+    return;
+  }
+  groups.forEach(g=>{
+    const box=el('div','dupg');
+    const gh=el('div','gh');
+    gh.innerHTML=`<b>${esc(g.vendor)}</b><span style="color:var(--sub)">${esc(g.period||'')}</span>
+      <span style="font-weight:600">${yen(g.amount)}</span>
+      <span class="pill ${g.risk==='open'?'unpaid':'paid'}">${g.risk==='open'?'まだ払っていないものを含む':'すべて支払済'}</span>`;
+    if(isAccounting()){
+      const ok=el('button','btn sm','別物として扱う'); ok.style.marginLeft='auto';
+      ok.onclick=async()=>{
+        const keys=[...new Set([...(S.settings.dupIgnore||[]), g.key])];
+        await saveSettings({dupIgnore:keys});
+        box.remove(); toast('以後この組み合わせは出しません');
+        if(S.view==='docs') renderDocs(); if(S.view==='home') renderHome();
+      };
+      gh.appendChild(ok);
+    }
+    box.appendChild(gh);
+    g.rows.forEach(d=>{
+      const r=el('div','gr');
+      r.innerHTML=`<span class="pill ${esc(d.status||'checked')}">${esc(DSTATUS[d.status]||'—')}</span>
+        <span>${esc(d.issuedAt||'')}</span>
+        <span style="color:var(--sub)">${esc(d.store||'')}</span>
+        <span style="color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px">${esc(d.fileName||d.memo||'')}</span>
+        <span class="d">${esc(d.createdBy||'')} 登録 →</span>`;
+      r.onclick=()=>{ m.remove(); go('docs'); openDoc(d.id); };
+      box.appendChild(r);
+    });
+    list.appendChild(box);
+  });
+}
+
+/* ============================================================
+   月次レポート（追加②）
+   ─────────────────────────────────────────────
+   台帳を「店舗 × 月」で集計する。前月比と、取引先の上位10件も出す。
+   いま手で作っている月次のスプレッドシートを置き換えるのが狙い。
+   ============================================================ */
+const repMonthOf = d => d.period && /^\d{4}-\d{2}$/.test(d.period)
+  ? d.period : (d.issuedAt||'').slice(0,7);
+
+function reportRows(year){
+  return S.docs.filter(d=>{
+    if(d.deleted) return false;
+    if(d.status==='planned') return false;         // 予定はまだ確定していないので入れない
+    if(S.repScope==='請求書' && d.type!=='請求書') return false;
+    const ym = repMonthOf(d);
+    return ym.slice(0,4)===String(year);
+  });
+}
+function renderReport(){
+  const V=$('#view-report'); V.innerHTML='';
+  const p=el('div','page'); const w=el('div','page-w'); p.appendChild(w); V.appendChild(p);
+
+  const years = [...new Set(S.docs.map(d=>repMonthOf(d).slice(0,4)).filter(Boolean))].sort().reverse();
+  const year = S.repYear || (years.includes(today().slice(0,4)) ? today().slice(0,4) : years[0]) || today().slice(0,4);
+  S.repYear = year;
+
+  const hd=el('div'); hd.style.cssText='display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap';
+  const ti=el('div');
+  ti.appendChild(el('h1',null,'月次レポート'));
+  ti.appendChild(el('div','lead','台帳を店舗×月で集計します。前月と比べてどうかが一目でわかります。予定の行は入れていません。'));
+  hd.appendChild(ti);
+  const acts=el('div'); acts.style.cssText='margin-left:auto;display:flex;gap:8px;flex-wrap:wrap';
+  const cb=el('button','btn','CSV書き出し'); cb.onclick=()=>exportReportCsv(year); acts.appendChild(cb);
+  hd.appendChild(acts); w.appendChild(hd);
+
+  const f=el('div','filters'); f.style.marginTop='16px';
+  const ys=el('select');
+  (years.length?years:[year]).forEach(y=>{ const o=el('option',null,y+'年'); o.value=y; ys.appendChild(o); });
+  ys.value=year; ys.onchange=()=>{ S.repYear=ys.value; renderReport(); };
+  f.appendChild(ys);
+  const sc=el('div','segs');
+  [['請求書','請求書だけ'],['all','すべての書類']].forEach(([k,l])=>{
+    const b=el('button', S.repScope===k?'on':'', esc(l));
+    b.onclick=()=>{ S.repScope=k; renderReport(); };
+    sc.appendChild(b);
+  });
+  f.appendChild(sc);
+  w.appendChild(f);
+
+  const rows = reportRows(year);
+  if(!rows.length){
+    w.appendChild(el('div','empty',`${year}年のデータがありません`));
+    return;
+  }
+
+  // 店舗 × 月
+  const stores=[...new Set(rows.map(d=>d.store||'（未設定）'))].sort();
+  const cell={}, monthTot=new Array(12).fill(0);
+  stores.forEach(s=>cell[s]=new Array(12).fill(0));
+  rows.forEach(d=>{
+    const mi = Number(repMonthOf(d).slice(5,7))-1;
+    if(mi<0||mi>11) return;
+    const a = Number(d.amount)||0;
+    cell[d.store||'（未設定）'][mi]+=a; monthTot[mi]+=a;
+  });
+  const total = monthTot.reduce((a,b)=>a+b,0);
+
+  const st=el('div','stat');
+  const withAmt = rows.filter(d=>d.amount!=null && d.amount!=='').length;
+  st.innerHTML = `${year}年　${rows.length}件　/　合計 <b style="color:var(--text)">${yen(total)}</b>`
+    + (withAmt!==rows.length ? `　/　<span style="color:var(--warn)">金額が空 ${rows.length-withAmt}件（集計に入っていません）</span>` : '');
+  w.appendChild(st);
+
+  const wrap=el('div','rep');
+  const t=el('table','rept');
+  const th=el('thead'); const tr=el('tr');
+  tr.appendChild(el('th',null,'店舗・部門'));
+  for(let i=0;i<12;i++) tr.appendChild(el('th',null,(i+1)+'月'));
+  tr.appendChild(el('th',null,'合計'));
+  th.appendChild(tr); t.appendChild(th);
+  const tb=el('tbody');
+  stores.forEach(s=>{
+    const r=el('tr');
+    r.appendChild(el('td',null,esc(s)));
+    let sum=0;
+    for(let i=0;i<12;i++){
+      const v=cell[s][i]; sum+=v;
+      const td=el('td', v?null:'z', v?Number(v).toLocaleString('ja-JP'):'—');
+      r.appendChild(td);
+    }
+    r.appendChild(el('td',null,'<b>'+Number(sum).toLocaleString('ja-JP')+'</b>'));
+    tb.appendChild(r);
+  });
+  const tr2=el('tr');
+  tr2.appendChild(el('td',null,'合計'));
+  for(let i=0;i<12;i++){
+    const v=monthTot[i];
+    const prev=i>0?monthTot[i-1]:0;
+    let dlt='';
+    if(v && prev){
+      const pc=Math.round((v-prev)/prev*100);
+      if(pc) dlt=`<span class="delta ${pc>0?'up':'dn'}">${pc>0?'+':''}${pc}%</span>`;
+    }
+    tr2.appendChild(el('td', v?null:'z', (v?Number(v).toLocaleString('ja-JP'):'—')+dlt));
+  }
+  tr2.appendChild(el('td',null,Number(total).toLocaleString('ja-JP')));
+  tb.appendChild(tr2);
+  t.appendChild(tb); wrap.appendChild(t); w.appendChild(wrap);
+  w.appendChild(el('div','help','「合計」の行に出ている％は前の月と比べた増減です。金額が空の書類は集計に入りません。'));
+
+  // 取引先 上位10
+  const byV={};
+  rows.forEach(d=>{ const k=d.vendor||'（未設定）'; byV[k]=(byV[k]||0)+(Number(d.amount)||0); });
+  const top=Object.entries(byV).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  if(top.length){
+    w.appendChild(el('div','sect-t',`取引先の上位 ${top.length}件（${year}年）`));
+    const bars=el('div','bars');
+    const max=top[0][1];
+    top.forEach(([name,v])=>{
+      const b=el('div','bar2');
+      b.innerHTML=`<span class="lb">${esc(name)}</span>
+        <span class="tr"><i style="width:${Math.max(2,Math.round(v/max*100))}%"></i></span>
+        <span class="vl">${yen(v)}</span>`;
+      const ven = vendorByName(name);
+      if(ven){ b.style.cursor='pointer'; b.onclick=()=>{ go('vendors'); openVendor(ven.id); }; }
+      bars.appendChild(b);
+    });
+    w.appendChild(bars);
+  }
+}
+function exportReportCsv(year){
+  const rows = reportRows(year);
+  const stores=[...new Set(rows.map(d=>d.store||'（未設定）'))].sort();
+  const cell={}; stores.forEach(s=>cell[s]=new Array(12).fill(0));
+  rows.forEach(d=>{ const mi=Number(repMonthOf(d).slice(5,7))-1; if(mi<0||mi>11) return;
+    cell[d.store||'（未設定）'][mi]+=Number(d.amount)||0; });
+  const line = a => a.map(v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`).join(',');
+  const head = ['店舗・部門', ...Array.from({length:12},(_,i)=>(i+1)+'月'), '合計'];
+  const body = stores.map(s=>line([s, ...cell[s], cell[s].reduce((a,b)=>a+b,0)]));
+  const tot = Array.from({length:12},(_,i)=>stores.reduce((a,s)=>a+cell[s][i],0));
+  body.push(line(['合計', ...tot, tot.reduce((a,b)=>a+b,0)]));
+  const csv='﻿'+[line(head),...body].join('\r\n');
+  const a=el('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=`Period_stock_月次レポート_${year}.csv`; a.click();
+  toast('書き出しました');
+}
+
+/* ============================================================
+   全データの書き出し（追加③・バックアップ）
+   ─────────────────────────────────────────────
+   Stockのときに「エクスポートが無くて出せない」で困ったので、
+   同じことが二度と起きないよう、いつでも全部を1ファイルで持ち出せるようにする。
+   ============================================================ */
+const BACKUP_COLLS = [
+  ['folders','フォルダ'], ['documents','書類の台帳'], ['minutes','議事録'],
+  ['vendors','取引先'], ['recurring','定期支払い'], ['comments','コメント'],
+  ['history','変更履歴'], ['members','メンバー'], ['settings','設定'],
+];
+function openBackup(){
+  const m=el('div','modal');
+  m.innerHTML=`<div class="box"><h3>全データを書き出す（バックアップ）</h3>
+    <p>ノート・書類の台帳・議事録・取引先・コメント・変更履歴を、1つのファイルにまとめて保存します。
+       Stockのときのように「出せなくて困る」ことが起きないための保険です。</p>
+    <label class="swrow"><input type="checkbox" id="bk-notes" checked>
+      <span>ノートの本文も含める（${S.notes.length.toLocaleString()}件・数分かかります）</span></label>
+    <div class="help">写真とPDFの実体は入りません（重くなりすぎるため）。
+      台帳のファイルは、必要なときに書類の詳細から個別に保存してください。</div>
+    <div class="bar"><i id="bk-b"></i></div>
+    <div class="log" id="bk-l" style="display:none"></div>
+    <div class="row"><button id="bk-c">閉じる</button><button id="bk-g" class="primary">書き出す</button></div></div>`;
+  document.body.appendChild(m);
+  m.querySelector('#bk-c').onclick=()=>m.remove();
+  m.querySelector('#bk-g').onclick=async()=>{
+    const go=m.querySelector('#bk-g'); go.disabled=true; go.textContent='書き出し中…';
+    const lg=m.querySelector('#bk-l'); lg.style.display='block';
+    const log=t=>{ lg.textContent+=t+'\n'; lg.scrollTop=lg.scrollHeight; };
+    const bar=m.querySelector('#bk-b');
+    const out={ __meta:{ app:'Period.stock', exportedAt:nowISO(), exportedBy:ME.email,
+                         note:'このファイルは Period.stock の全データです。写真とPDFの実体は含まれません。' } };
+    try{
+      const withNotes = m.querySelector('#bk-notes').checked;
+      const steps = BACKUP_COLLS.length + (withNotes?1:0);
+      let i=0;
+      for(const [name,label] of BACKUP_COLLS){
+        const s = await getDocs(collection(db, name));
+        out[name] = s.docs.map(d=>({id:d.id, ...d.data()}));
+        log(`${label} … ${out[name].length}件`);
+        bar.style.width = (++i/steps*100).toFixed(0)+'%';
+      }
+      if(withNotes){
+        log('ノート本文を読み込んでいます…（いちばん時間がかかります）');
+        const s = await getDocs(collection(db,'notes'));
+        out.notes = s.docs.map(d=>({id:d.id, ...d.data()}));
+        log(`ノート … ${out.notes.length}件`);
+        bar.style.width='100%';
+      }
+      const json = JSON.stringify(out);
+      log('圧縮しています…');
+      let blob, fname;
+      try{
+        const gz = await gzipStr(json);
+        blob = new Blob([gz], {type:'application/gzip'});
+        fname = `Period_stock_バックアップ_${today()}.json.gz`;
+      }catch(e){
+        // 圧縮できない環境でも、書き出しだけは必ず成功させる
+        log('圧縮できなかったので、そのままの形で書き出します');
+        blob = new Blob([json], {type:'application/json'});
+        fname = `Period_stock_バックアップ_${today()}.json`;
+      }
+      const a=el('a');
+      a.href=URL.createObjectURL(blob);
+      a.download=fname;
+      a.click();
+      log(`できました（${mb(blob.size)}・${fname}）。ダウンロードフォルダを見てください。`);
+      go.textContent='完了';
+    }catch(e){
+      log('エラー: '+e.message);
+      go.disabled=false; go.textContent='もう一度';
+    }
+  };
+}
+
+/* ============================================================
    全画面横断のキーワード検索（A-8）
    ─────────────────────────────────────────────
    上のバーの検索窓から、ノート・書類・議事録・取引先をまとめて探す。
@@ -4600,6 +5084,18 @@ async function buildNotifications(){
       body: `${d.vendor||''}　${yen(d.amount)}　${d.period||''}`,
       link:{view:'docs', id:d.id}, createdAt: (d.issuedAt||today())+'T09:00:00.000Z' });
   });
+
+  // 2-b-2) 二重払いのおそれ（経理・管理者だけ）
+  if(isAccounting()){
+    openDuplicates().forEach(g=>{
+      const id = `dup_${g.key}`;
+      if(dm.includes(id)) return;
+      out.push({ id, kind:'due', read:false, stored:false,
+        title:'二重払いのおそれ',
+        body: `${g.vendor}　${g.period}　${yen(g.amount)} が ${g.rows.length}件`,
+        link:{view:'docs', id:g.rows[0].id}, createdAt: nowISO() });
+    });
+  }
 
   // 2-c) 自分あての承認待ち
   if(isManager()){
