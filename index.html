@@ -335,7 +335,133 @@ iframe.fprev.pdf{height:420px}
 .approve b{font-size:13.5px;color:#8a5a12;display:block}
 .approve span{font-size:12px;color:var(--sub);display:block;margin-top:3px;line-height:1.6}
 
-@media(max-width:1100px){#view-knowledge.on{grid-template-columns:210px 300px 1fr}.nav button{padding:7px 10px}}
+/* ============================================================
+   ここから 2026年8月 第2弾の追加ぶん
+   （定期支払い・OCR・取引先・カレンダー・承認・スマホ・横断検索・変更履歴）
+   ============================================================ */
+
+/* 状態ピル（追加） */
+.pill.planned{background:#eef2fb;color:#3a4c78;border-color:#d5deee}
+.pill.approval{background:#f3eefb;color:#5b3f8a;border-color:#ded2f0}
+.pill.miss{background:var(--warn);color:#fff}
+
+/* 上部の横断検索 */
+.gsearch{flex:1;max-width:420px;position:relative;margin-left:6px}
+.gsearch input{width:100%;height:34px;border-radius:4px;border:1px solid var(--line2);
+  background:var(--navy2);color:#fff;padding:0 12px 0 34px;outline:none;font-size:12.5px}
+.gsearch input::placeholder{color:#8892a6}
+.gsearch input:focus{border-color:var(--accent2)}
+.gsearch .ic{position:absolute;left:11px;top:9px;width:15px;height:15px;opacity:.55;pointer-events:none}
+.gpop{position:absolute;top:40px;left:0;width:min(560px,88vw);max-height:66vh;overflow-y:auto;background:#fff;
+  border:1px solid var(--line);border-radius:7px;box-shadow:0 14px 36px rgba(20,27,45,.24);z-index:45;color:var(--text)}
+.gpop .gh{font-size:11px;letter-spacing:.06em;color:var(--sub);padding:9px 14px 7px;background:#fafbfc;
+  border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1}
+.gpop .grow{display:flex;gap:9px;align-items:center;padding:9px 14px;border-bottom:1px solid #f2f4f7;cursor:pointer}
+.gpop .grow:hover,.gpop .grow.sel{background:#f4f1ea}
+.gpop .grow b{font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:46%;flex:none}
+.gpop .grow .s{font-size:11px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.gpop .grow .d{font-size:10.5px;color:#b6bdc9;white-space:nowrap}
+.gpop .gmore{padding:10px 14px;font-size:11.5px;color:var(--accent);cursor:pointer;text-align:center}
+.gpop .gmore:hover{background:#faf8f3}
+
+/* 表示切替（表 / カレンダー） */
+.segs{display:inline-flex;border:1px solid var(--line);border-radius:5px;overflow:hidden;background:#fff}
+.segs button{padding:6px 14px;font-size:12.5px;color:var(--sub);border-right:1px solid var(--line)}
+.segs button:last-child{border-right:none}
+.segs button.on{background:var(--navy);color:#fff}
+
+/* 支払いカレンダー */
+.calbar{display:flex;align-items:center;gap:10px;margin:14px 0 10px;flex-wrap:wrap}
+.calbar .mo{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;min-width:128px}
+.calbar .sum{font-size:12.5px;color:var(--sub);margin-left:auto;font-variant-numeric:tabular-nums}
+.calbar .sum b{color:var(--text);font-size:14px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);background:var(--line);gap:1px;
+  border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.cal .dow{background:#fafbfc;text-align:center;font-size:11px;color:var(--sub);padding:7px 0;letter-spacing:.04em}
+.cal .dow.sat{color:#3a5a8a}.cal .dow.sun{color:var(--danger)}
+.cal .cell{background:#fff;min-height:104px;padding:5px 6px 7px;display:flex;flex-direction:column;gap:3px}
+.cal .cell.out{background:#fbfcfd}
+.cal .cell.today{background:#fdfbf6;box-shadow:inset 0 0 0 2px var(--accent2)}
+.cal .cell .dn{font-size:11.5px;color:var(--sub);font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:6px}
+.cal .cell .dn .t{margin-left:auto;font-size:10.5px;color:#9aa3b2}
+.cal .cell.out .dn{color:#c3c9d4}
+.cal .ev{font-size:11px;border-radius:3px;padding:2px 5px;cursor:pointer;line-height:1.45;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid transparent}
+.cal .ev:hover{filter:brightness(.96)}
+.cal .ev.unpaid{background:#fdf3f2;color:var(--danger);border-color:#eed6d2}
+.cal .ev.paid{background:#eef4f0;color:var(--ok);border-color:#d3e3da}
+.cal .ev.pending{background:#fdf4e8;color:#8a5a12;border-color:#ebd9bb}
+.cal .ev.approval{background:#f3eefb;color:#5b3f8a;border-color:#ded2f0}
+.cal .ev.planned{background:#eef2fb;color:#3a4c78;border-color:#d5deee}
+.cal .ev.hold,.cal .ev.checked{background:#f5f6f8;color:#5b6577;border-color:#e6e9ef}
+.cal .ev .a{float:right;margin-left:8px;font-variant-numeric:tabular-nums}
+.cal .more{font-size:10.5px;color:#9aa3b2;padding:0 5px;cursor:pointer}
+.cal .more:hover{color:var(--accent)}
+
+/* OCR */
+.ocrbox{border:1px solid var(--line);border-radius:6px;background:#fafbfc;padding:12px 14px;margin-top:10px}
+.ocrbox .hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ocrbox .hd b{font-size:12.5px}
+.ocrbox .msg{font-size:11.5px;color:var(--sub);margin-top:7px;line-height:1.6}
+.ocands{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.ocands button{border:1px solid var(--line);border-radius:14px;padding:5px 14px;background:#fff;
+  font-size:12.5px;font-variant-numeric:tabular-nums}
+.ocands button:hover{border-color:var(--accent);color:var(--accent);background:#fdfbf6}
+.ocands button.best{border-color:var(--accent);color:var(--accent);font-weight:600}
+.ocrraw{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:var(--sub);background:#fff;
+  border:1px solid var(--line);border-radius:4px;padding:8px;margin-top:9px;max-height:150px;overflow:auto;white-space:pre-wrap}
+
+/* 変更履歴 */
+.hist{border-left:2px solid var(--line);margin-left:5px;padding-left:15px}
+.hrow{padding:9px 0;border-bottom:1px solid #f2f4f7;position:relative}
+.hrow:last-child{border-bottom:none}
+.hrow::before{content:'';position:absolute;left:-21px;top:15px;width:7px;height:7px;border-radius:50%;
+  background:#fff;border:2px solid var(--line)}
+.hrow.new::before{border-color:var(--accent)}
+.hrow .hh{font-size:11.5px;color:var(--sub);display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.hrow .hh b{font-size:12.5px;color:var(--text);font-weight:600}
+.hrow .hc{font-size:12px;margin-top:3px;line-height:1.75}
+.hrow .hc .f{color:var(--sub)}
+.hrow .hc .o{color:#9aa3b2;text-decoration:line-through;margin:0 3px}
+.hrow .hc .n{color:var(--text);font-weight:600}
+
+/* 取引先・定期支払い */
+.vcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:12px;margin-top:4px}
+.vcard{background:#fff;border:1px solid var(--line);border-radius:7px;padding:14px 16px;cursor:pointer}
+.vcard:hover{border-color:var(--accent);background:#fdfcfa}
+.vcard .nm{font-size:14px;font-weight:600;line-height:1.4}
+.vcard .kn{font-size:11px;color:#9aa3b2}
+.vcard .rw{font-size:11.5px;color:var(--sub);margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.vcard .amt{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text)}
+.help{font-size:11.5px;color:#9aa3b2;line-height:1.65;margin-top:5px}
+.fgrid .full{grid-column:1 / -1}
+.fgrid .hint{grid-column:2 / 3;font-size:11px;color:#9aa3b2;margin-top:-4px;line-height:1.55}
+.swrow{display:flex;align-items:center;gap:9px;font-size:12.5px;padding:7px 0}
+.swrow input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);flex:none}
+.miss{background:#fdf4e8;border:1px solid #ebd9bb;border-radius:6px;padding:13px 17px;margin-top:14px}
+.miss b{font-size:13px;color:#8a5a12}
+.miss .mt{font-size:12px;color:var(--sub);margin-top:3px;line-height:1.65}
+.miss .mi{font-size:12.5px;padding:6px 0;border-bottom:1px solid #efe3ca;cursor:pointer;
+  display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.miss .mi:last-child{border-bottom:none}
+.miss .mi:hover{color:var(--accent)}
+.miss .mi .d{margin-left:auto;font-size:11.5px;color:#9a6a1a;white-space:nowrap}
+
+/* スマホ用のカード表（760px以下でのみ出る） */
+.mcards{display:none}
+.mcard{background:#fff;border:1px solid var(--line);border-radius:7px;padding:12px 14px;margin-bottom:8px}
+.mcard .t1{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.mcard .t2{font-size:14px;font-weight:600;margin-top:5px;line-height:1.4;word-break:break-all}
+.mcard .t3{display:flex;align-items:baseline;gap:10px;margin-top:6px;flex-wrap:wrap}
+.mcard .t3 .amt{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+.mcard .t3 .due{font-size:12px;color:var(--sub)}
+.mcard .t3 .due.over{color:var(--danger);font-weight:600}
+
+/* 下部ナビ（スマホのみ） */
+.tabbar{display:none}
+
+@media(max-width:1100px){#view-knowledge.on{grid-template-columns:210px 300px 1fr}.nav button{padding:7px 10px}
+  .gsearch{max-width:230px}}
 
 /* ---------- スマホ ---------- */
 @media(max-width:760px){
@@ -378,7 +504,64 @@ iframe.fprev.pdf{height:420px}
   .detail-head,.body{padding-left:18px;padding-right:18px}
   .attach{margin-left:18px;margin-right:18px}
   iframe.fprev.pdf{height:300px}
+
+  /* --- 第2弾：スマホ最適化 --- */
+  /* 上のタブは下のタブバーに移す */
+  .nav{display:none}
+  .gsearch{order:4;width:100%;max-width:none;margin-left:0}
+  .gsearch input{font-size:16px;height:38px}
+  .gpop{width:calc(100vw - 28px);left:0;top:44px;max-height:70vh}
+
+  /* 下部タブバー */
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;height:56px;background:#fff;
+    border-top:1px solid var(--line);z-index:50;
+    padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -2px 12px rgba(20,27,45,.06)}
+  .tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:2px;font-size:10px;color:#9aa3b2;min-width:0}
+  .tabbar button svg{width:20px;height:20px;stroke:#9aa3b2;fill:none;stroke-width:1.7;
+    stroke-linecap:round;stroke-linejoin:round}
+  .tabbar button.on{color:var(--accent)}
+  .tabbar button.on svg{stroke:var(--accent)}
+  .tabbar button .bg{position:absolute;top:6px;margin-left:20px;min-width:15px;height:15px;border-radius:8px;
+    background:var(--danger);color:#fff;font-size:9px;line-height:15px;text-align:center;padding:0 4px;font-weight:600}
+  #views{padding-bottom:56px}
+  .page{padding-bottom:26px}
+  .drawer{padding-bottom:0}
+
+  /* 表はカードに畳む */
+  .dtable{display:none}
+  .mcards{display:block}
+  .filters{gap:7px}
+  .filters select{flex:1;min-width:calc(50% - 4px)}
+  .segs{width:100%}
+  .segs button{flex:1;padding:9px 0;font-size:13px}
+
+  /* ナレッジは1カラムのドリルダウン */
+  #view-knowledge.on{grid-template-columns:1fr;grid-template-rows:1fr}
+  #view-knowledge .pane{display:none;max-height:none;height:100%;border:none}
+  #view-knowledge.k0 #sidebar{display:block;max-height:none}
+  #view-knowledge.k1 #list{display:block}
+  #view-knowledge.k2 #detail{display:block}
+  .kback{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--accent);
+    padding:11px 18px;border-bottom:1px solid var(--line);background:#fafbfc;position:sticky;top:0;z-index:3;width:100%}
+  .list-head{padding:13px 18px}
+  .item{padding:15px 18px}
+
+  /* 入力まわりを指で押しやすく */
+  .btn{padding:10px 16px;font-size:13.5px}
+  .btn.sm{padding:7px 12px;font-size:12.5px}
+  .tools button{padding:8px 13px;font-size:12.5px}
+  .drop{padding:34px 18px}
+  .cal .cell{min-height:66px;padding:3px}
+  .cal .cell .dn{font-size:10.5px}
+  .cal .ev{font-size:9.5px;padding:1px 3px}
+  .cal .ev .a{display:none}
+  .calbar .mo{font-size:15px;min-width:110px}
+  .vcards{grid-template-columns:1fr}
+  .cmt-form textarea{font-size:16px}
+  .ocands button{padding:8px 16px;font-size:14px}
 }
+@media(min-width:761px){ .kback{display:none} }
 </style>
 </head>
 <body>
@@ -389,6 +572,11 @@ iframe.fprev.pdf{height:420px}
   <div class="topbar">
     <div class="brand">PERIOD.<span>stock</span></div>
     <div class="nav" id="nav"></div>
+    <div class="gsearch" id="gsearch">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#9aa4b8" stroke-width="2">
+        <circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      <input id="gq" placeholder="全画面を横断して検索（ / ）" autocomplete="off">
+    </div>
     <div class="who">
       <button class="bell" id="bell" title="通知">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#cfd6e3" stroke-width="1.8"
@@ -409,7 +597,11 @@ iframe.fprev.pdf{height:420px}
     </div>
     <div class="view" id="view-docs"></div>
     <div class="view" id="view-minutes"></div>
+    <div class="view" id="view-vendors"></div>
+    <div class="view" id="view-recurring"></div>
   </div>
+
+  <div class="tabbar" id="tabbar"></div>
 </div>
 
 <script type="module">
@@ -444,9 +636,18 @@ let fb=null, db=null, auth=null, ME=null;
 
 const STORES  = ["本部","Li'l Fit","ULuLu","NIRAM","it's Time coffee","Fitness","Beauty","CAFE","経理","その他"];
 const DTYPES  = ["請求書","納品書","領収書","見積書","発注書","契約書","その他"];
-// 流れ： 確認待ち（店舗が登録）→ 未払い（経理が確認）→ 支払済
-const DSTATUS = { pending:'確認待ち', unpaid:'未払い', paid:'支払済', hold:'保留', checked:'確認済' };
-const isAccounting = () => ['accounting','admin'].includes((S.myRole||'').toLowerCase());
+// 流れ： 予定（定期支払いから自動生成）
+//        → 確認待ち（店舗が登録）→ 承認待ち（金額が大きいとき）→ 未払い → 支払済
+const DSTATUS = { planned:'予定', pending:'確認待ち', approval:'承認待ち',
+                  unpaid:'未払い', paid:'支払済', hold:'保留', checked:'確認済' };
+// 支払いを待っている＝まだお金が出ていない状態
+const OPEN_ST = ['pending','approval','unpaid','hold'];
+
+const ROLES = { member:'メンバー', accounting:'経理', manager:'マネージャー', admin:'管理者' };
+const roleOf = () => (S.myRole||'member').toLowerCase();
+const isAdmin      = () => roleOf()==='admin';
+const isAccounting = () => ['accounting','admin'].includes(roleOf());
+const isManager    = () => ['manager','admin'].includes(roleOf());
 
 const S = {
   view:'home',
@@ -461,6 +662,15 @@ const S = {
   // 議事録
   minutes:[], minuteId:null, minuteEditing:false,
   mfil:{store:'',year:'',kw:''},
+  // 取引先マスタ（A-4）
+  vendors:[], vendorId:null, vfil:{kw:'',store:''},
+  // 定期支払い（A-1）
+  recurring:[], recurringId:null,
+  // 台帳の表示（表 / カレンダー）（A-5）
+  docView: localStorage.getItem('period_stock_docview') || 'table',
+  calYM: null,
+  // 全体設定（承認フローなど）（A-6）
+  settings:{ approvalOn:false, approvalMin:100000, approvalRoles:['manager','admin'] },
 };
 
 const CFG_KEY = 'period_stock_cfg';
@@ -492,6 +702,7 @@ async function boot(){
     $('#app').classList.add('ready');
     $('#whoami').textContent = ME.name;
     renderNav();
+    initGlobalSearch();
     await loadAll();
   });
 }
@@ -568,6 +779,15 @@ $('#admin').onclick = () => {
         <span>documents_seed.json.gz を読み込んで、台帳261件を一括登録します。</span></button>
       <button data-a="created"><b>ノートの作成日を取り込む</b>
         <span>並び替えの「作成日順」を正確にします。${S.created?'取り込み済み':'まだ取り込んでいません'}。</span></button>
+      <button data-a="approval"><b>承認フローの設定</b>
+        <span>経理の確認のあとに、マネージャーの承認を挟むかどうか。金額のしきい値も決められます。
+              いまは ${S.settings.approvalOn ? `オン（${yen(S.settings.approvalMin)}以上）` : 'オフ'}。</span></button>
+      <button data-a="vendors"><b>台帳から取引先マスタを作る</b>
+        <span>台帳に出てくる取引先名をまとめてマスタに登録します。支払サイトはあとから入れられます。</span></button>
+      <button data-a="rec"><b>定期支払いの予定をいま立てる</b>
+        <span>ふだんは開いたときに自動で立ちます。手で立て直したいときに。</span></button>
+      <button data-a="ocr"><b>まとめてOCR</b>
+        <span>金額が空の書類を順番に読み取って、候補を保存します。金額は自動では入りません。</span></button>
       <button data-a="cache"><b>端末のキャッシュを消す</b>
         <span>表示がおかしいときに。次に開いたとき読み直します。</span></button>
     </div>
@@ -582,6 +802,14 @@ $('#admin').onclick = () => {
       if(a==='photo') importAttachments('photo');
       if(a==='docs') importDocs();
       if(a==='created') importCreated();
+      if(a==='approval') openApprovalSettings();
+      if(a==='vendors'){ go('vendors'); importVendorsFromDocs(); }
+      if(a==='ocr') batchOcr();
+      if(a==='rec'){
+        const n = await ensureRecurring();
+        toast(n? `${n}件の予定を立てました` : '不足している予定はありません');
+        if(S.view==='docs') renderDocs();
+      }
       if(a==='cache'){
         try{ indexedDB.deleteDatabase('period_knowledge'); }catch(e){}
         toast('キャッシュを消しました。画面を再読み込みします');
@@ -594,7 +822,16 @@ $('#admin').onclick = () => {
 /* ============================================================
    ナビゲーション
    ============================================================ */
-const NAVS = [['home','ホーム'],['knowledge','ナレッジ'],['docs','請求書・納品書'],['minutes','議事録']];
+const NAVS = [['home','ホーム'],['knowledge','ナレッジ'],['docs','請求書・納品書'],
+              ['recurring','定期支払い'],['vendors','取引先'],['minutes','議事録']];
+// スマホの下部タブは5つまで。使う頻度の高いものだけ出す
+const TABS = [
+  ['home','ホーム',   '<path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>'],
+  ['docs','請求書',   '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'],
+  ['new','＋登録',    '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>'],
+  ['knowledge','ノート','<path d="M4 5a2 2 0 012-2h12v18H6a2 2 0 01-2-2z"/><path d="M8 7h8M8 11h8"/>'],
+  ['minutes','議事録', '<path d="M9 3h9a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V8z"/><path d="M8 12h7M8 16h5"/>'],
+];
 function renderNav(){
   const n=$('#nav'); n.innerHTML='';
   NAVS.forEach(([k,label])=>{
@@ -602,14 +839,37 @@ function renderNav(){
     b.onclick=()=>go(k);
     n.appendChild(b);
   });
+  renderTabbar();
+}
+function renderTabbar(){
+  const t=$('#tabbar'); if(!t) return;
+  t.innerHTML='';
+  TABS.forEach(([k,label,path])=>{
+    const on = (k==='knowledge' && S.view==='knowledge') || S.view===k;
+    const b=el('button', on?'on':'');
+    b.innerHTML=`<svg viewBox="0 0 24 24">${path}</svg><span>${esc(label)}</span>`;
+    b.onclick = k==='new' ? (()=>newDoc()) : (()=>go(k));
+    t.appendChild(b);
+  });
 }
 function go(v){
   S.view=v; renderNav();
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
-  $('#view-'+v).classList.add('on');
+  const t=$('#view-'+v); if(t) t.classList.add('on');
   if(v==='home') renderHome();
   if(v==='docs') renderDocs();
   if(v==='minutes') renderMinutes();
+  if(v==='vendors') renderVendors();
+  if(v==='recurring') renderRecurring();
+  if(v==='knowledge') kStep(S.noteId ? 2 : 1);
+  closeGpop();
+}
+/* スマホでナレッジを1カラムに畳むための段階（0:フォルダ 1:一覧 2:本文） */
+function kStep(n){
+  const v=$('#view-knowledge');
+  v.classList.remove('k0','k1','k2');
+  v.classList.add('k'+n);
+  S.kstep=n;
 }
 
 /* ============================================================
@@ -634,9 +894,11 @@ async function loadAll(){
   loadAttIndex().then(()=>{ if(S.noteId) renderDetail(); });
   loadCreated().then(()=>{ if(S.view==='knowledge' && /^created_/.test(S.noteSort)) renderList(); });
   loadTags().then(()=>{ if(S.view==='knowledge') renderList(); });
-  Promise.all([syncDocs(), syncMinutes()]).then(()=>{
+  Promise.all([syncDocs(), syncMinutes(), syncVendors(), syncRecurring(), loadSettings()]).then(async ()=>{
+    try{ await ensureRecurring(); }catch(e){}
     buildNotifications();
     if(S.view==='home') renderHome();
+    if(S.view==='docs') renderDocs();
   });
 }
 
@@ -678,6 +940,21 @@ async function syncColl(name, cacheKey){
 }
 async function syncDocs(){    S.docs    = await syncColl('documents','docs_cache'); return S.docs; }
 async function syncMinutes(){ S.minutes = await syncColl('minutes','minutes_cache'); return S.minutes; }
+async function syncVendors(){ S.vendors = await syncColl('vendors','vendors_cache'); return S.vendors; }
+async function syncRecurring(){ S.recurring = await syncColl('recurring','recurring_cache'); return S.recurring; }
+
+/* --- 全体設定（承認フローのON/OFFなど。1ドキュメントだけ） --- */
+async function loadSettings(){
+  try{
+    const s = await getDoc(doc(db,'settings','app'));
+    if(s.exists()) Object.assign(S.settings, s.data());
+  }catch(e){}
+  return S.settings;
+}
+async function saveSettings(patch){
+  Object.assign(S.settings, patch);
+  await setDoc(doc(db,'settings','app'), {...S.settings, updatedAt:nowISO(), editor:ME.name}, {merge:true});
+}
 
 /* --- ナレッジ索引（既存） --- */
 async function loadIndex(){
@@ -838,19 +1115,28 @@ function renderHome(){
       b.innerHTML=`<b>${esc(label)}</b><span>${esc(sub)}</span>`; b.onclick=fn; return b; };
     acts.appendChild(mk('＋ 請求書を登録','写真を撮って登録', ()=>newDoc()));
     acts.appendChild(mk('＋ 議事録を作成','決定事項とToDoを残す', ()=>{ go('minutes'); newMinute(); }));
+    acts.appendChild(mk('支払いカレンダー','今月いくら出ていくか',
+      ()=>{ S.docView='calendar'; localStorage.setItem('period_stock_docview','calendar'); go('docs'); }));
+    acts.appendChild(mk('定期支払い','毎月の固定費と未着の確認', ()=>go('recurring')));
     rest.appendChild(acts);
 
     /* ---------- 要対応（あるときだけ） ---------- */
     const pending = S.docs.filter(d=>d.status==='pending');
+    const approval= S.docs.filter(d=>d.status==='approval');
     const unpaid  = S.docs.filter(d=>d.status==='unpaid' && d.type==='請求書');
     const overdue = unpaid.filter(d=>d.dueAt && d.dueAt < today());
     const soon    = unpaid.filter(d=>d.dueAt && d.dueAt >= today() && daysBetween(today(), d.dueAt) <= 7);
+    const miss    = missingInvoices();
     const myTodos = allTodos().filter(t=>!t.done && (t.assignee===ME.name || t.assignee===ME.email));
     const overTodos = myTodos.filter(t=>t.due && t.due < today());
     const yensum = a => a.reduce((s,d)=>s+(Number(d.amount)||0),0);
 
     const todo=[];
-    const goDocs = st => ()=>{ S.dfil={type:'',store:'',year:'',status:st,vendor:'',kw:''}; go('docs'); };
+    const goDocs = st => ()=>{ S.dfil={...emptyDfil(), status:st}; S.docView='table'; go('docs'); };
+    if(miss.length) todo.push(['alert', `請求書が届いていません ${miss.length}件`,
+      '定期支払いの予定日を過ぎています', ()=>go('recurring')]);
+    if(approval.length && isManager()) todo.push(['warn', `あなたの承認待ち ${approval.length}件`,
+      yen(yensum(approval)), goDocs('approval')]);
     if(pending.length) todo.push(['warn', `経理の確認待ち ${pending.length}件`, '店舗から登録された請求書', goDocs('pending')]);
     if(overdue.length) todo.push(['alert', `支払期日を過ぎている請求書 ${overdue.length}件`, yen(yensum(overdue)), goDocs('unpaid')]);
     if(soon.length)    todo.push(['warn', `7日以内に支払期日 ${soon.length}件`, yen(yensum(soon)), goDocs('unpaid')]);
@@ -886,9 +1172,26 @@ function renderHome(){
     }
 
     /* ---------- 数字はここに1行だけ ---------- */
+    // 今月の支払い予定（A-5の入り口）
+    const ym = thisYM();
+    const thisMonth = S.docs.filter(d=>(d.dueAt||'').slice(0,7)===ym
+      && (OPEN_ST.includes(d.status) || d.status==='planned'));
+    if(thisMonth.length){
+      rest.appendChild(el('div','sect-t','今月の支払い予定'));
+      const box=el('div','listbox');
+      const r=el('div','srow');
+      r.innerHTML=`<b>${esc(ym.replace('-','年'))}月に出ていくお金</b>
+        <span class="s">${thisMonth.length}件</span><span class="d">${yen(yensum(thisMonth))}</span>`;
+      r.onclick=()=>{ S.docView='calendar'; S.calYM=ym;
+        localStorage.setItem('period_stock_docview','calendar'); go('docs'); };
+      box.appendChild(r);
+      rest.appendChild(box);
+    }
+
     const st=el('div','stat');
     st.innerHTML = `ノート ${S.notes.length.toLocaleString()}件　/　書類 ${S.docs.length.toLocaleString()}件`
       + (S.minutes.length? `　/　議事録 ${S.minutes.length}件` : '')
+      + (S.vendors.length? `　/　取引先 ${S.vendors.length}件` : '')
       + (unpaid.length? `　/　未払い ${yen(yensum(unpaid))}（${unpaid.length}件）` : '');
     rest.appendChild(st);
   };
@@ -927,7 +1230,7 @@ function renderSidebar(){
         const d=el('div','fold'+(S.folderId===f.id?' on':''),
           `<span>${esc(f.name)}</span><span class="n">${counts[f.id]}</span>`);
         d.onclick=()=>{ S.folderId=f.id; S.results=null; S.noteQ='';
-          renderSidebar(); renderList(); renderDetail(); };
+          renderSidebar(); renderList(); renderDetail(); kStep(1); };
         wrap.appendChild(d);
       });
     }
@@ -1018,6 +1321,8 @@ function renderList(){
   }
   L.appendChild(head);
   if(!rows.length){ L.appendChild(el('div','empty','ノートがありません')); return; }
+  // スマホ：フォルダ一覧へ戻る
+  { const bk=el('button','kback','← フォルダ'); bk.onclick=()=>kStep(0); L.insertBefore(bk, L.firstChild); }
   const box=el('div');
   rows.slice(0,300).forEach(n=>{
     const it=el('div','item'+(S.noteId===n.id?' on':''));
@@ -1028,7 +1333,7 @@ function renderList(){
       ${n.archived?'<span class="badge arc">アーカイブ</span>':''}
       ${tagsOf(n).slice(0,2).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}
       ${S.results?`<span style="margin-left:auto">${esc(n.folder||'')}</span>`:''}</div>`;
-    it.onclick=()=>{ S.noteId=n.id; S.editing=false; renderList(); renderDetail(); };
+    it.onclick=()=>{ S.noteId=n.id; S.editing=false; renderList(); renderDetail(); kStep(2); };
     box.appendChild(it);
   });
   if(rows.length>300) box.appendChild(el('div','empty',`ほか ${rows.length-300} 件は検索で絞り込んでください`));
@@ -1044,6 +1349,7 @@ async function renderDetail(){
   pushRecent('note', String(n.id), n.title, n.folder);
   const ed = S.editing;
   D.innerHTML='';
+  { const bk=el('button','kback','← ノート一覧'); bk.onclick=()=>kStep(1); D.appendChild(bk); }
   const head=el('div','detail-head');
   const h1=el('h1',null,esc(n.title));
   if(ed){ h1.contentEditable='true'; h1.id='t-edit'; }
@@ -1340,13 +1646,39 @@ function filteredDocs(){
     if(f.status && d.status !== f.status) return false;
     if(f.vendor && d.vendor !== f.vendor) return false;
     if(f.year   && (d.issuedAt||'').slice(0,4) !== f.year) return false;
+    if(f.day    && d.dueAt !== f.day) return false;
     if(kw.length){
-      const hay = `${d.vendor||''} ${d.fileName||''} ${d.noteTitle||''} ${d.folder||''} ${d.memo||''} ${d.period||''} ${d.amount||''}`.toLowerCase();
+      const hay = `${d.vendor||''} ${d.fileName||''} ${d.noteTitle||''} ${d.folder||''} ${d.memo||''} ${d.period||''} ${d.amount||''} ${d.ocrText||''}`.toLowerCase();
       if(!kw.every(k=>hay.includes(k))) return false;
     }
     return true;
   });
 }
+const emptyDfil = () => ({type:'',store:'',year:'',status:'',vendor:'',kw:'',day:''});
+
+/* 金額が空で、OCRの候補があるときに出す小さなボタン */
+function ocrChipCell(d){
+  if(d.amount!=null && d.amount!=='') return yen(d.amount);
+  if(!(d.ocrCands && d.ocrCands.length)) return '<span style="color:#c0c6d0">—</span>';
+  return d.ocrCands.slice(0,2).map(n=>
+    `<button class="btn sm ocrpick" data-id="${esc(d.id)}" data-n="${n}"
+       style="padding:2px 8px;font-size:11px;border-radius:11px">${esc(yen(n))}?</button>`).join(' ');
+}
+function bindOcrChips(root){
+  root.querySelectorAll('.ocrpick').forEach(b=>{
+    b.onclick=async e=>{
+      e.stopPropagation();
+      const d=S.docs.find(x=>x.id===b.dataset.id); if(!d) return;
+      const before={...d};
+      d.amount=Number(b.dataset.n); d.updatedAt=nowISO(); d.editor=ME.name;
+      await setDoc(doc(db,'documents',d.id), {amount:d.amount, updatedAt:d.updatedAt, editor:ME.name}, {merge:true});
+      await logChange('doc', d.id, `${d.vendor||''} ${d.period||''}`, before, d, 'update', 'OCRの候補から金額を確定');
+      await idbSet('docs_cache', null);
+      toast(`金額を ${yen(d.amount)} にしました`); renderDocs();
+    };
+  });
+}
+
 function renderDocs(){
   const V=$('#view-docs'); V.innerHTML='';
   const p=el('div','page'); const w=el('div','page-w'); p.appendChild(w); V.appendChild(p);
@@ -1354,10 +1686,13 @@ function renderDocs(){
   const hd=el('div'); hd.style.cssText='display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap';
   const ti=el('div');
   ti.appendChild(el('h1',null,'請求書・納品書'));
-  ti.appendChild(el('div','lead','取引先・金額・支払期日をひとつの台帳で管理します。ファイル本体はGoogleドライブにあります。'));
+  ti.appendChild(el('div','lead','取引先・金額・支払期日をひとつの台帳で管理します。定期支払いは「予定」の行が自動で立ちます。'));
   hd.appendChild(ti);
-  const acts=el('div'); acts.style.cssText='margin-left:auto;display:flex;gap:8px';
+  const acts=el('div'); acts.style.cssText='margin-left:auto;display:flex;gap:8px;flex-wrap:wrap';
   const nb=el('button','btn primary','＋ 新規登録'); nb.onclick=()=>newDoc(); acts.appendChild(nb);
+  if(isAccounting()){
+    const ob=el('button','btn','まとめてOCR'); ob.onclick=()=>batchOcr(); acts.appendChild(ob);
+  }
   const cb=el('button','btn','CSV書き出し'); cb.onclick=()=>exportDocsCsv(); acts.appendChild(cb);
   hd.appendChild(acts);
   w.appendChild(hd);
@@ -1367,19 +1702,56 @@ function renderDocs(){
   const unpaid = inv.filter(d=>d.status==='unpaid');
   const overdue = unpaid.filter(d=>d.dueAt && d.dueAt<today());
   const pending = S.docs.filter(d=>d.status==='pending');
+  const approval = S.docs.filter(d=>d.status==='approval');
   const sum = a => a.reduce((s,d)=>s+(Number(d.amount)||0),0);
 
   // 確認待ちが溜まっていたら、いちばん上で知らせる
   if(pending.length){
     const bn=el('div','banner');
     bn.innerHTML=`<b>経理の確認待ちが ${pending.length}件 あります</b>
-      <span>店舗から登録された請求書です。内容を確かめて「未払い」に進めてください。</span>`;
+      <span>店舗から登録された請求書です。内容を確かめて次に進めてください。</span>`;
     const b=el('button','btn primary sm','確認待ちだけ表示');
-    b.onclick=()=>{ S.dfil={type:'',store:'',year:'',status:'pending',vendor:'',kw:''}; renderDocs(); };
+    b.onclick=()=>{ S.dfil={...emptyDfil(), status:'pending'}; renderDocs(); };
+    bn.appendChild(b); w.appendChild(bn);
+  }
+  if(approval.length && isManager()){
+    const bn=el('div','banner');
+    bn.innerHTML=`<b>あなたの承認待ちが ${approval.length}件 あります</b>
+      <span>合計 ${yen(sum(approval))}。承認すると経理の支払い待ちに進みます。</span>`;
+    const b=el('button','btn primary sm','承認待ちだけ表示');
+    b.onclick=()=>{ S.dfil={...emptyDfil(), status:'approval'}; renderDocs(); };
     bn.appendChild(b); w.appendChild(bn);
   }
 
-  const f=el('div','filters');
+  // 届いていない請求書（A-1）
+  const miss = missingInvoices();
+  if(miss.length){
+    const b=el('div','miss');
+    b.innerHTML=`<b>請求書が届いていないかもしれません（${miss.length}件）</b>
+      <div class="mt">定期支払いの予定日を過ぎましたが、まだファイルもリンクも付いていません。</div>`;
+    miss.slice(0,5).forEach(d=>{
+      const r=el('div','mi');
+      r.innerHTML=`<span>${esc(d.vendor||'(取引先未設定)')}</span>
+        <span style="color:var(--sub)">${esc(d.period||'')}・${yen(d.amount)}</span>
+        <span class="d">予定日から ${daysBetween(d.issuedAt, today())}日</span>`;
+      r.onclick=()=>openDoc(d.id);
+      b.appendChild(r);
+    });
+    w.appendChild(b);
+  }
+
+  // 表 / カレンダーの切り替え
+  const segwrap=el('div'); segwrap.style.cssText='margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap';
+  const segs=el('div','segs');
+  [['table','表'],['calendar','カレンダー']].forEach(([k,l])=>{
+    const b=el('button', S.docView===k?'on':'', esc(l));
+    b.onclick=()=>{ S.docView=k; localStorage.setItem('period_stock_docview',k); renderDocs(); };
+    segs.appendChild(b);
+  });
+  segwrap.appendChild(segs);
+  w.appendChild(segwrap);
+
+  const f=el('div','filters'); f.style.marginTop='12px';
   const sel=(key,label,opts)=>{
     const s=el('select');
     s.appendChild(el('option',null,label)); s.lastChild.value='';
@@ -1395,27 +1767,38 @@ function renderDocs(){
   f.appendChild(sel('vendor','取引先（すべて）', docVendors().map(v=>[v,v])));
   const kw=el('input','kw'); kw.placeholder='キーワード'; kw.value=S.dfil.kw;
   let kt=null;
-  kw.oninput=()=>{ clearTimeout(kt); kt=setTimeout(()=>{ S.dfil.kw=kw.value; const sc=$('#view-docs').scrollTop; renderDocs();
+  kw.oninput=()=>{ clearTimeout(kt); kt=setTimeout(()=>{ S.dfil.kw=kw.value; renderDocs();
     const nk=$('#view-docs input.kw'); if(nk){ nk.focus(); nk.setSelectionRange(nk.value.length,nk.value.length); } },250); };
   f.appendChild(kw);
+  if(S.dfil.day){
+    const c=el('button','btn sm',`期日 ${S.dfil.day} ×`);
+    c.onclick=()=>{ S.dfil.day=''; renderDocs(); };
+    f.appendChild(c);
+  }
   const cl=el('button','btn sm','条件クリア');
-  cl.onclick=()=>{ S.dfil={type:'',store:'',year:'',status:'',vendor:'',kw:''}; renderDocs(); };
+  cl.onclick=()=>{ S.dfil=emptyDfil(); renderDocs(); };
   f.appendChild(cl);
   w.appendChild(f);
-
-  // 数字は表の上に1行だけ
-  const st=el('div','stat');
-  st.innerHTML = `${rows.length.toLocaleString()}件`
-    + (rows.length!==S.docs.length ? `（全${S.docs.length.toLocaleString()}件中）` : '')
-    + (inv.length ? `　/　請求額 ${yen(sum(inv))}` : '')
-    + (unpaid.length ? `　/　未払い ${yen(sum(unpaid))}（${unpaid.length}件）` : '')
-    + (overdue.length ? `　/　<span style="color:var(--danger)">期日超過 ${overdue.length}件</span>` : '');
-  w.appendChild(st);
 
   if(!S.docs.length){
     w.appendChild(el('div','empty','まだ書類が登録されていません。<br>「＋ 新規登録」で追加するか、右上の「管理」から初期データを取り込んでください。'));
     return;
   }
+
+  // ---------- カレンダー表示 ----------
+  if(S.docView==='calendar'){ renderDocCalendar(w, rows); return; }
+
+  // 数字は表の上に1行だけ
+  const planned = rows.filter(d=>d.status==='planned');
+  const st=el('div','stat');
+  st.innerHTML = `${rows.length.toLocaleString()}件`
+    + (rows.length!==S.docs.length ? `（全${S.docs.length.toLocaleString()}件中）` : '')
+    + (inv.length ? `　/　請求額 ${yen(sum(inv))}` : '')
+    + (unpaid.length ? `　/　未払い ${yen(sum(unpaid))}（${unpaid.length}件）` : '')
+    + (planned.length ? `　/　予定 ${yen(sum(planned))}（${planned.length}件）` : '')
+    + (overdue.length ? `　/　<span style="color:var(--danger)">期日超過 ${overdue.length}件</span>` : '');
+  w.appendChild(st);
+
   if(!rows.length){ w.appendChild(el('div','empty','条件に一致する書類がありません')); return; }
 
   const cols=[['issuedAt','発行日'],['type','種別'],['vendor','取引先'],['store','店舗'],
@@ -1436,24 +1819,48 @@ function renderDocs(){
     return String(av||'').localeCompare(String(bv||''),'ja')*d;
   });
   const tb=el('tbody');
-  sorted.slice(0,600).forEach(d=>{
+  const shown = sorted.slice(0,600);
+  shown.forEach(d=>{
     const over = d.status==='unpaid' && d.dueAt && d.dueAt<today();
+    const late = d.status==='planned' && !d.hasFile && !d.filePath && !d.fileLink && (d.issuedAt||'')<=today();
     const r=el('tr');
     r.innerHTML=`<td style="white-space:nowrap">${esc(d.issuedAt||'')}</td>
       <td><span class="pill t">${esc(d.type||'')}</span></td>
-      <td class="el">${esc(d.vendor||'')}</td>
+      <td class="el">${esc(d.vendor||'')}${d.recurringId?' <span class="badge">定期</span>':''}</td>
       <td style="white-space:nowrap">${esc(d.store||'')}</td>
       <td style="white-space:nowrap">${esc(d.period||'')}</td>
-      <td class="num">${yen(d.amount)}</td>
+      <td class="num">${ocrChipCell(d)}</td>
       <td style="white-space:nowrap">${d.dueAt? (over? `<span class="pill over">${esc(d.dueAt)}</span>` : esc(d.dueAt)) : '<span style="color:#c0c6d0">—</span>'}</td>
-      <td><span class="pill ${esc(d.status||'checked')}">${esc(DSTATUS[d.status]||'—')}</span></td>
+      <td><span class="pill ${esc(d.status||'checked')}">${esc(DSTATUS[d.status]||'—')}</span>${late?' <span class="pill miss">未着</span>':''}</td>
       <td class="el" style="color:var(--sub)">${esc(d.fileName||'')}</td>`;
     r.onclick=()=>openDoc(d.id);
     tb.appendChild(r);
   });
   t.appendChild(tb);
-  const wrap=el('div'); wrap.style.cssText='overflow:auto;max-height:calc(100vh - 380px);border-radius:6px';
+  const wrap=el('div','dtable'); wrap.style.cssText='overflow:auto;max-height:calc(100vh - 380px);border-radius:6px';
   wrap.appendChild(t); w.appendChild(wrap);
+
+  // ---------- スマホ用のカード（A-7） ----------
+  const mc=el('div','mcards');
+  shown.forEach(d=>{
+    const over = d.status==='unpaid' && d.dueAt && d.dueAt<today();
+    const late = d.status==='planned' && !d.hasFile && !d.filePath && !d.fileLink && (d.issuedAt||'')<=today();
+    const c=el('div','mcard');
+    c.innerHTML=`<div class="t1">
+        <span class="pill ${esc(d.status||'checked')}">${esc(DSTATUS[d.status]||'—')}</span>
+        ${late?'<span class="pill miss">未着</span>':''}
+        <span class="pill t">${esc(d.type||'')}</span>
+        <span style="font-size:11.5px;color:var(--sub);margin-left:auto">${esc(d.store||'')}</span></div>
+      <div class="t2">${esc(d.vendor||'(取引先未設定)')}</div>
+      <div class="t3"><span class="amt">${ocrChipCell(d)}</span>
+        <span class="due${over?' over':''}">${d.dueAt?('期日 '+esc(d.dueAt)):'期日なし'}</span>
+        <span style="font-size:11.5px;color:#9aa3b2;margin-left:auto">${esc(d.period||'')}</span></div>`;
+    c.onclick=()=>openDoc(d.id);
+    mc.appendChild(c);
+  });
+  w.appendChild(mc);
+  bindOcrChips(w);
+
   if(sorted.length>600) w.appendChild(el('div','empty',`ほか ${sorted.length-600} 件は絞り込んでください`));
 }
 
@@ -2125,12 +2532,13 @@ async function runAttImport(files, $$, mode){
 }
 
 /* ---------- 請求書の登録（スタッフ用・スマホ想定） ---------- */
-function newDoc(){
+function newDoc(pre){
+  pre = pre || {};
   const m=el('div','modal');
   m.innerHTML=`<div class="box reg">
     <h3>請求書を登録する</h3>
     <p>写真かPDFを選んで、わかる範囲で入れてください。空欄があっても登録できます。<br>
-       登録すると経理に通知が飛び、経理が確認します。</p>
+       取引先をマスタから選ぶと、支払期日が自動で入ります。</p>
     <div class="drop" id="drop">
       <div class="ph">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#b9c0cc" stroke-width="1.6"
@@ -2143,15 +2551,20 @@ function newDoc(){
       <div id="fname" class="fn"></div>
     </div>
     <input type="file" id="pick" accept="image/*,application/pdf" style="display:none">
+    <div id="ocrwrap"></div>
     <div class="fgrid" style="margin-top:18px">
+      <label>取引先</label><select id="r-vid"></select>
+      <label>取引先名</label><input id="r-vendor" placeholder="例：株式会社hacomono">
       <label>店舗</label><select id="r-store"></select>
-      <label>取引先</label><input id="r-vendor" placeholder="例：株式会社hacomono">
       <label>金額（税込）</label><input id="r-amount" type="number" inputmode="numeric" placeholder="38500">
+      <label>発行日</label><input id="r-issued" type="date">
       <label>支払期日</label><input id="r-due" type="date">
+      <label>対象月</label><input id="r-period" placeholder="2026-08">
       <label>種別</label><select id="r-type"></select>
       <label>メモ</label><input id="r-memo" placeholder="任意">
       <label>リンク</label><input id="r-link" placeholder="任意：Googleドライブの共有リンク">
     </div>
+    <div class="help" id="r-hint"></div>
     <div class="row"><button id="r-cancel">キャンセル</button>
       <button id="r-go" class="primary">登録する</button></div>
     <div id="r-msg" style="font-size:12px;color:var(--sub);margin-top:10px;text-align:right"></div>
@@ -2160,7 +2573,30 @@ function newDoc(){
   const $$ = s => m.querySelector(s);
   STORES.forEach(s=>{ const o=el('option',null,esc(s)); o.value=s; $$('#r-store').appendChild(o); });
   DTYPES.forEach(t=>{ const o=el('option',null,esc(t)); o.value=t; $$('#r-type').appendChild(o); });
-  $$('#r-store').value = STORES[0];
+  const vsel=$$('#r-vid');
+  { const o=el('option',null,'（マスタから選ぶ）'); o.value=''; vsel.appendChild(o); }
+  activeVendors().forEach(v=>{ const o=el('option',null,esc(v.name)); o.value=v.id; vsel.appendChild(o); });
+  { const o=el('option',null,'＋ 新しい取引先をマスタに追加'); o.value='__new'; vsel.appendChild(o); }
+  $$('#r-store').value = pre.store || STORES[0];
+  $$('#r-issued').value = today();
+  $$('#r-period').value = today().slice(0,7);
+
+  const applyVendor = ()=>{
+    if(vsel.value==='__new'){ vsel.value=''; m.remove(); go('vendors'); openVendor(null); return; }
+    const v=vendorById(vsel.value);
+    const hint=$$('#r-hint');
+    if(!v){ hint.textContent=''; return; }
+    $$('#r-vendor').value = v.name;
+    if(v.store) $$('#r-store').value = v.store;
+    if(v.defaultType) $$('#r-type').value = v.defaultType;
+    if(v.defaultAmount && !$$('#r-amount').value) $$('#r-amount').value = v.defaultAmount;
+    const due = calcDueDate(v, $$('#r-issued').value || today());
+    if(due) $$('#r-due').value = due;
+    hint.innerHTML = `${esc(payTermsLabel(v))} → 支払期日 <b>${esc(due||'—')}</b>`;
+  };
+  vsel.onchange = applyVendor;
+  $$('#r-issued').onchange = ()=>{ if(vsel.value) applyVendor(); };
+  if(pre.vendorId){ vsel.value=pre.vendorId; applyVendor(); }
 
   let picked=null;
   const showFile=f=>{
@@ -2170,6 +2606,32 @@ function newDoc(){
     if(/^image\//.test(f.type)){ p.src=URL.createObjectURL(f); p.style.display='block'; $$('.ph').style.display='none'; }
     else { p.style.display='none'; $$('.ph').style.display='flex'; }
     $$('#drop').classList.add('has');
+    mountOcrForFile();
+  };
+  const mountOcrForFile = ()=>{
+    const w=$$('#ocrwrap'); w.innerHTML='';
+    const box=el('div','ocrbox');
+    const hd=el('div','hd'); hd.innerHTML='<b>写真から金額を読み取る（OCR）</b>';
+    const b=el('button','btn sm','読み取る'); hd.appendChild(b);
+    hd.appendChild(el('span',null,'<span style="font-size:11px;color:#9aa3b2">端末の中だけで処理します</span>'));
+    box.appendChild(hd);
+    const msg=el('div','msg'); box.appendChild(msg);
+    const cd=el('div','ocands'); box.appendChild(cd);
+    b.onclick=async()=>{
+      if(!picked) return;
+      b.disabled=true; cd.innerHTML='';
+      try{
+        const r=await ocrFile(picked, t=>{ msg.innerHTML=`<span class="spin"></span> ${esc(t)}`; });
+        if(!r.amts.length && !r.dates.length){ msg.textContent='読み取れませんでした。明るいところで撮り直すと精度が上がります。'; }
+        else msg.innerHTML='<b>正しいものを押してください。</b>';
+        r.amts.forEach((a,i)=>{ const x=el('button', i===0?'best':'', yen(a.n));
+          x.onclick=()=>{ $$('#r-amount').value=a.n; toast(`金額に ${yen(a.n)} を入れました`); }; cd.appendChild(x); });
+        r.dates.forEach(dt=>{ const x=el('button',null,dt);
+          x.onclick=()=>{ $$('#r-due').value=dt; toast('支払期日に入れました'); }; cd.appendChild(x); });
+      }catch(e){ msg.innerHTML=`<span style="color:var(--danger)">${esc(e.message)}</span>`; }
+      b.disabled=false;
+    };
+    w.appendChild(box);
   };
   $$('#drop').onclick=()=>$$('#pick').click();
   $$('#pick').onchange=e=>{ const f=e.target.files[0]; if(f) showFile(f); };
@@ -2184,9 +2646,10 @@ function newDoc(){
     const btn=$$('#r-go'), msg=$$('#r-msg');
     btn.disabled=true;
     const id='d'+Date.now()+Math.random().toString(36).slice(2,5);
-    const d = { id, type:$$('#r-type').value, vendor:$$('#r-vendor').value.trim(),
+    const d = { id, type:$$('#r-type').value, vendor:$$('#r-vendor').value.trim(), vendorId:vsel.value||'',
       amount: $$('#r-amount').value==='' ? null : Number($$('#r-amount').value),
-      issuedAt:today(), dueAt:$$('#r-due').value, period:today().slice(0,7),
+      issuedAt:$$('#r-issued').value || today(), dueAt:$$('#r-due').value,
+      period:$$('#r-period').value.trim() || today().slice(0,7),
       store:$$('#r-store').value, section:'', status:'pending',
       fileName:'', hasFile:false, fileSize:0, fileType:'', filePath:'',
       fileLink:$$('#r-link').value.trim(),
@@ -2202,6 +2665,7 @@ function newDoc(){
       await setDoc(doc(db,'documents',id), d);
       S.docs.unshift(d);
       await idbSet('docs_cache', null);
+      await logChange('doc', id, `${d.vendor||''} ${d.period||''}`, null, d, 'create');
       const n = await notifyAccounting('doc', '請求書が登録されました',
         `${d.store}　${d.vendor||'取引先未記入'}　${d.amount?yen(d.amount):'金額未記入'}（登録 ${ME.name}）`,
         {view:'docs', id});
@@ -2218,6 +2682,7 @@ function newDoc(){
 function openDoc(id, editing){
   const d = S.docs.find(x=>x.id===id); if(!d) return;
   S.docId=id;
+  const before = JSON.parse(JSON.stringify(d));
   pushRecent('doc', d.id, `${d.vendor||'（取引先未設定）'}　${d.period||''}`, `${d.type||''}・${d.store||''}`);
   const bg=el('div','drawer-bg'); const dw=el('div','drawer');
   const close=()=>{ bg.remove(); dw.remove(); S.docId=null; };
@@ -2227,34 +2692,83 @@ function openDoc(id, editing){
   hd.innerHTML=`<button class="x">&times;</button>
     <div style="font-size:11.5px;color:var(--sub);letter-spacing:.05em">
       ${esc(d.type||'')} / ${esc(d.store||'')}
-      <span class="pill ${esc(d.status||'checked')}" style="margin-left:6px">${esc(DSTATUS[d.status]||'—')}</span></div>
+      <span class="pill ${esc(d.status||'checked')}" style="margin-left:6px">${esc(DSTATUS[d.status]||'—')}</span>
+      ${d.recurringId?'<span class="badge" style="margin-left:6px">定期支払い</span>':''}</div>
     <h2>${esc(d.vendor||'（取引先未設定）')}</h2>
     <div style="font-size:12.5px;color:var(--sub);margin-top:4px">
       ${esc(d.period||'')}　<b style="color:var(--text);font-size:15px">${yen(d.amount)}</b>
       ${d.dueAt?`　期日 ${esc(d.dueAt)}`:''}</div>
     ${d.createdBy?`<div style="font-size:11px;color:#9aa3b2;margin-top:3px">登録 ${esc(d.createdBy)} / ${fmt(d.createdAt)}${
-      d.checkedBy?`　確認 ${esc(d.checkedBy)} / ${fmt(d.checkedAt)}`:''}</div>`:''}`;
+      d.checkedBy?`　確認 ${esc(d.checkedBy)} / ${fmt(d.checkedAt)}`:''}${
+      d.approvedBy?`　承認 ${esc(d.approvedBy)} / ${fmt(d.approvedAt)}`:''}</div>`:''}`;
   hd.querySelector('.x').onclick=close;
   dw.appendChild(hd);
 
   const bd=el('div','db'); dw.appendChild(bd);
 
-  /* --- 経理の確認ボタン（確認待ちのときだけ大きく出す） --- */
-  if(d.status==='pending'){
+  /* --- 状態を進めるボタン --- */
+  if(d.status==='planned'){
     const box=el('div','approve');
-    box.innerHTML=`<b>経理の確認待ちです</b>
-      <span>内容を確かめて、問題なければ「確認して未払いにする」を押してください。</span>`;
+    const late = !d.hasFile && !d.filePath && !d.fileLink && (d.issuedAt||'')<=today();
+    box.innerHTML=`<b>${late?'請求書がまだ届いていません':'定期支払いの予定です'}</b>
+      <span>${late
+        ? `予定日 ${esc(d.issuedAt||'')} を ${daysBetween(d.issuedAt, today())}日 過ぎています。先方に確認してください。`
+        : '請求書が届いたら、下でファイルを添付して「請求書が届いた」を押してください。'}</span>`;
     const rw=el('div'); rw.style.cssText='display:flex;gap:8px;margin-top:12px;flex-wrap:wrap';
-    const ok=el('button','btn primary','確認して未払いにする');
-    ok.onclick=()=>setStatus(d, 'unpaid', close);
+    const ok=el('button','btn primary','請求書が届いた');
+    ok.onclick=()=>setStatus(d, 'pending', close, '予定に請求書が届いた');
+    const sk=el('button','btn','今月はなし（予定を消す）');
+    sk.onclick=async()=>{
+      if(!confirm('この月の予定を消します。定期支払いのルールは残ります。よろしいですか？')) return;
+      await setDoc(doc(db,'documents',d.id), {deleted:true, updatedAt:nowISO()}, {merge:true});
+      await logChange('doc', d.id, `${d.vendor||''} ${d.period||''}`, null, null, 'delete', '予定を取り消し');
+      S.docs = S.docs.filter(x=>x.id!==d.id);
+      await idbSet('docs_cache', null);
+      close(); renderDocs(); toast('予定を消しました');
+    };
+    rw.appendChild(ok); rw.appendChild(sk); box.appendChild(rw);
+    bd.appendChild(box);
+
+  }else if(d.status==='pending'){
+    const box=el('div','approve');
+    const next = needsApproval(d) ? 'approval' : 'unpaid';
+    box.innerHTML=`<b>経理の確認待ちです</b>
+      <span>内容を確かめて、問題なければ下のボタンを押してください。${
+        next==='approval' ? `この金額（${yen(d.amount)}）は ${yen(S.settings.approvalMin)} 以上なので、次はマネージャーの承認に回ります。` : ''}</span>`;
+    const rw=el('div'); rw.style.cssText='display:flex;gap:8px;margin-top:12px;flex-wrap:wrap';
+    const ok=el('button','btn primary', next==='approval' ? '確認して承認に回す' : '確認して未払いにする');
+    ok.onclick=()=>setStatus(d, next, close);
     const hold=el('button','btn','差し戻す（保留）');
     hold.onclick=()=>setStatus(d, 'hold', close);
     rw.appendChild(ok); rw.appendChild(hold); box.appendChild(rw);
     bd.appendChild(box);
+
+  }else if(d.status==='approval'){
+    const box=el('div','approve');
+    box.innerHTML=`<b>マネージャーの承認待ちです</b>
+      <span>${isManager()
+        ? '内容を確かめて、問題なければ承認してください。承認すると経理の支払い待ちに進みます。'
+        : 'マネージャーが承認すると、支払い待ちに進みます。'}</span>`;
+    if(isManager()){
+      const rw=el('div'); rw.style.cssText='display:flex;gap:8px;margin-top:12px;flex-wrap:wrap';
+      const ok=el('button','btn primary','承認する');
+      ok.onclick=()=>setStatus(d, 'unpaid', close);
+      const hold=el('button','btn','差し戻す（保留）');
+      hold.onclick=()=>setStatus(d, 'hold', close);
+      rw.appendChild(ok); rw.appendChild(hold); box.appendChild(rw);
+    }
+    bd.appendChild(box);
+
   }else if(d.status==='unpaid'){
     const rw=el('div'); rw.style.cssText='display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap';
     const ok=el('button','btn primary','支払済にする');
     ok.onclick=()=>setStatus(d, 'paid', close);
+    rw.appendChild(ok); bd.appendChild(rw);
+
+  }else if(d.status==='hold'){
+    const rw=el('div'); rw.style.cssText='display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap';
+    const ok=el('button','btn primary','確認待ちに戻す');
+    ok.onclick=()=>setStatus(d, 'pending', close);
     rw.appendChild(ok); bd.appendChild(rw);
   }
 
@@ -2264,7 +2778,9 @@ function openDoc(id, editing){
   const sl=(v,opts)=>{ const s=el('select'); opts.forEach(([val,l])=>{ const o=el('option',null,esc(l)); o.value=val; s.appendChild(o); }); s.value=v||''; return s; };
 
   const fType   = field('種別', sl(d.type, DTYPES.map(t=>[t,t])));
-  const fVendor = field('取引先', inp(d.vendor));
+  const fVid    = field('取引先（マスタ）', sl(d.vendorId||'',
+                    [['','（選ばない）'],...activeVendors().map(v=>[v.id,v.name])]));
+  const fVendor = field('取引先名', inp(d.vendor));
   const fStore  = field('店舗・部門', sl(d.store, STORES.map(t=>[t,t])));
   const fAmount = field('金額（税込）', inp(d.amount, 'number'));
   const fIssued = field('発行日', inp(d.issuedAt, 'date'));
@@ -2275,6 +2791,27 @@ function openDoc(id, editing){
   const fMemo   = field('メモ', el('textarea'));
   fMemo.value = d.memo||'';
   bd.appendChild(g);
+  const vhint=el('div','help'); bd.appendChild(vhint);
+  const drawVHint=()=>{
+    const v=vendorById(fVid.value);
+    if(!v){ vhint.innerHTML=''; return; }
+    const due=calcDueDate(v, fIssued.value||today());
+    vhint.innerHTML=`${esc(payTermsLabel(v))}
+      ${v.bankName?`　/　${esc(v.bankName)} ${esc(v.bankBranch||'')} ${esc(v.bankType||'')} ${esc(v.bankNumber||'')}`:''}
+      ${due?`　/　この発行日なら支払期日は <b>${esc(due)}</b>`:''}
+      <button class="btn sm" id="vh-apply" style="margin-left:8px">期日を入れる</button>
+      <button class="btn sm" id="vh-open">取引先を開く</button>`;
+    const a=vhint.querySelector('#vh-apply');
+    if(a) a.onclick=()=>{ if(due){ fDue.value=due; toast('支払期日を入れました'); } };
+    const o=vhint.querySelector('#vh-open');
+    if(o) o.onclick=()=>{ close(); go('vendors'); openVendor(v.id); };
+  };
+  fVid.onchange=()=>{ const v=vendorById(fVid.value);
+    if(v){ if(!fVendor.value) fVendor.value=v.name;
+           const due=calcDueDate(v, fIssued.value||today()); if(due && !fDue.value) fDue.value=due; }
+    drawVHint(); };
+  fIssued.onchange=drawVHint;
+  drawVHint();
 
   const save = el('button','btn primary','保存');
   const del  = el('button','btn','削除');
@@ -2284,12 +2821,13 @@ function openDoc(id, editing){
 
   save.onclick = async ()=>{
     Object.assign(d, {
-      type:fType.value, vendor:fVendor.value.trim(), store:fStore.value,
+      type:fType.value, vendor:fVendor.value.trim(), vendorId:fVid.value, store:fStore.value,
       amount: fAmount.value===''? null : Number(fAmount.value),
       issuedAt:fIssued.value, dueAt:fDue.value, period:fPeriod.value.trim(),
       status:fStatus.value, memo:fMemo.value, updatedAt:nowISO(), editor:ME.name
     });
     await setDoc(doc(db,'documents',d.id), d);
+    await logChange('doc', d.id, `${d.vendor||''} ${d.period||''}`, before, d, 'update');
     await idbSet('docs_cache', null);
     toast('保存しました');
     buildNotifications(); close(); renderDocs();
@@ -2297,6 +2835,7 @@ function openDoc(id, editing){
   del.onclick = async ()=>{
     if(!confirm('この書類を台帳から削除します。よろしいですか？（ドライブのファイルは消えません）')) return;
     await setDoc(doc(db,'documents',d.id), {deleted:true, updatedAt:nowISO()}, {merge:true});
+    await logChange('doc', d.id, `${d.vendor||''} ${d.period||''}`, null, null, 'delete');
     S.docs = S.docs.filter(x=>x.id!==d.id);
     await idbSet('docs_cache', null);
     close(); renderDocs(); toast('削除しました');
@@ -2306,8 +2845,9 @@ function openDoc(id, editing){
   bd.appendChild(el('div','sect-t','ファイル'));
   const fbox = el('div');
   bd.appendChild(fbox);
+  const ocrw = el('div');
   const drawFile = async ()=>{
-    fbox.innerHTML='';
+    fbox.innerHTML=''; ocrw.innerHTML='';
     if(d.hasFile){
       // アプリに登録されたファイル（Firestoreの中）
       const ph=el('div',null,'<div style="padding:24px;text-align:center;color:#9aa3b2;font-size:12px"><span class="spin"></span> 読み込み中</div>');
@@ -2335,9 +2875,16 @@ function openDoc(id, editing){
           Object.assign(d,{hasFile:false,fileName:'',fileSize:0,fileType:''});
           await setDoc(doc(db,'documents',d.id),
             {hasFile:false,fileName:'',fileSize:0,fileType:'',updatedAt:nowISO()},{merge:true});
+          await logChange('doc', d.id, `${d.vendor||''} ${d.period||''}`, null, null, 'file', '添付ファイルを削除');
           await idbSet('docs_cache', null); drawFile(); toast('削除しました');
         };
         r.appendChild(op); r.appendChild(rm); fbox.appendChild(r);
+        // OCR（A-2）
+        mountOcr(ocrw, d, (field, val)=>{
+          if(field==='amount'){ fAmount.value=val; toast(`金額に ${yen(val)} を入れました。保存を押してください`); }
+          if(field==='issuedAt'){ fIssued.value=val; drawVHint(); toast('発行日に入れました'); }
+          if(field==='dueAt'){ fDue.value=val; toast('支払期日に入れました'); }
+        });
       }else{
         fbox.appendChild(el('div',null,'<div style="font-size:12px;color:var(--sub);padding:8px 0">ファイルを読み込めませんでした。</div>'));
       }
@@ -2364,6 +2911,7 @@ function openDoc(id, editing){
           const meta = await saveDocFile(d.id, f, t=>msg.textContent=t);
           Object.assign(d, meta);
           await setDoc(doc(db,'documents',d.id), {...meta, updatedAt:nowISO()}, {merge:true});
+          await logChange('doc', d.id, `${d.vendor||''} ${d.period||''}`, null, null, 'file', `ファイルを添付：${meta.fileName}`);
           await idbSet('docs_cache', null);
           drawFile(); toast('添付しました');
         }catch(e){ msg.innerHTML=`<span style="color:var(--danger)">${esc(e.message)}</span>`; }
@@ -2382,8 +2930,10 @@ function openDoc(id, editing){
     lg.appendChild(el('label',null,'ファイルのリンク'));
     const li=el('input'); li.placeholder='任意：Googleドライブの共有リンク'; li.value=d.fileLink||'';
     li.onchange=async()=>{
+      const old=d.fileLink||'';
       d.fileLink=li.value.trim();
       await setDoc(doc(db,'documents',d.id),{fileLink:d.fileLink, updatedAt:nowISO()},{merge:true});
+      await logChange('doc', d.id, `${d.vendor||''} ${d.period||''}`, {fileLink:old}, {fileLink:d.fileLink}, 'update');
       await idbSet('docs_cache', null); toast('保存しました');
     };
     lg.appendChild(li); fbox.appendChild(lg);
@@ -2395,30 +2945,53 @@ function openDoc(id, editing){
 
     if(d.noteId){
       const lk=el('button','btn sm','元のノートを開く'); lk.style.marginTop='10px';
-      lk.onclick=()=>{ close(); go('knowledge'); S.noteId=d.noteId; S.results=null; S.editing=false; renderList(); renderDetail(); };
+      lk.onclick=()=>{ close(); go('knowledge'); S.noteId=d.noteId; S.results=null; S.editing=false; renderList(); renderDetail(); kStep(2); };
       fbox.appendChild(lk);
     }
   };
+  bd.appendChild(ocrw);
   drawFile();
 
   // コメント
   const cw=el('div'); bd.appendChild(cw);
   mountComments(cw, 'doc', d.id, `${d.vendor||''} ${d.period||''} ${d.type||''}`);
 
+  // 変更履歴（A-9）
+  const hw=el('div'); bd.appendChild(hw);
+  mountHistory(hw, 'doc', d.id);
+
   document.body.appendChild(bg); document.body.appendChild(dw);
   if(editing) fVendor.focus();
 }
 
-/* 状態を進める（経理の確認・支払済など）。登録した人に結果を通知する。 */
-async function setStatus(d, status, done){
+/* 状態を進める（確認・承認・支払済など）。関係する人に結果を通知する。 */
+async function setStatus(d, status, done, note){
+  const before = {...d};
   const patch = { status, updatedAt:nowISO(), editor:ME.name };
-  if(status==='unpaid' || status==='hold'){ patch.checkedBy=ME.name; patch.checkedAt=nowISO(); }
+  if(status==='unpaid' || status==='hold' || status==='approval'){ patch.checkedBy=ME.name; patch.checkedAt=nowISO(); }
+  if(status==='unpaid' && before.status==='approval'){ patch.approvedBy=ME.name; patch.approvedAt=nowISO(); }
   if(status==='paid'){ patch.paidBy=ME.name; patch.paidAt=nowISO(); }
+  if(status==='pending' && before.status==='planned'){ patch.planned=false; }
   Object.assign(d, patch);
   await setDoc(doc(db,'documents',d.id), patch, {merge:true});
+  await logChange('doc', d.id, `${d.vendor||''} ${d.period||''}`,
+                  {status:before.status}, {status}, 'status', note||'');
   await idbSet('docs_cache', null);
+
+  // 承認に回したときはマネージャーへ
+  if(status==='approval'){
+    await notifyRoles(['manager','admin'], 'doc', '承認をお願いします',
+      `${d.vendor||''}　${yen(d.amount)}（${d.store||''}）`, {view:'docs', id:d.id});
+  }
+  // 経理へ（予定に請求書が届いた／保留から戻した）
+  if(status==='pending'){
+    await notifyAccounting('doc', '請求書の確認をお願いします',
+      `${d.vendor||''}　${yen(d.amount)}（${d.store||''}）`, {view:'docs', id:d.id});
+  }
+  // 登録した人へ結果を返す
   if(d.createdByEmail && d.createdByEmail!==ME.email){
-    const msg = { unpaid:'経理が確認しました', hold:'経理が保留にしました。内容を確認してください',
+    const msg = { unpaid:'経理・マネージャーの確認が終わりました', approval:'マネージャーの承認に回りました',
+                  hold:'保留になりました。内容を確認してください',
                   paid:'支払いが完了しました' }[status];
     if(msg) await pushNotif(d.createdByEmail, 'doc', msg,
       `${d.vendor||''}　${yen(d.amount)}（${d.store||''}）`, {view:'docs', id:d.id});
@@ -2431,10 +3004,17 @@ async function setStatus(d, status, done){
 
 function exportDocsCsv(){
   const rows = filteredDocs();
-  const head = ['発行日','種別','取引先','店舗','対象月','金額','支払期日','状態','ファイル名','保存パス','メモ'];
+  const head = ['発行日','種別','取引先','店舗','対象月','金額','支払期日','状態','支払サイト',
+                '金融機関','支店','種別(口座)','口座番号','口座名義','担当者',
+                'ファイル名','保存パス','メモ','登録者','確認者','承認者','最終更新'];
   const line = a => a.map(v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`).join(',');
-  const body = rows.map(d=>line([d.issuedAt,d.type,d.vendor,d.store,d.period,d.amount??'',
-    d.dueAt,DSTATUS[d.status]||'',d.fileName,d.filePath,d.memo]));
+  const body = rows.map(d=>{
+    const v = vendorFor(d) || {};
+    return line([d.issuedAt,d.type,d.vendor,d.store,d.period,d.amount??'',
+      d.dueAt,DSTATUS[d.status]||'', v.payDay?payTermsLabel(v):'',
+      v.bankName||'', v.bankBranch||'', v.bankType||'', v.bankNumber||'', v.bankHolder||'', v.contact||'',
+      d.fileName,d.filePath,d.memo,d.createdBy||'',d.checkedBy||'',d.approvedBy||'',fmtT(d.updatedAt)]);
+  });
   const csv = '﻿' + [line(head), ...body].join('\r\n');
   const a=el('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download=`Period_stock_書類台帳_${today()}.csv`; a.click();
@@ -2478,6 +3058,1078 @@ function importDocs(){
       setTimeout(()=>{ m.remove(); renderDocs(); toast(`${rows.length}件を取り込みました`); }, 700);
     }catch(err){ log('エラー: '+err.message); }
   };
+}
+
+/* ============================================================
+   変更履歴（A-9）
+   ─────────────────────────────────────────────
+   「誰がいつ、どの項目を、何から何に変えたか」を history に残す。
+   消さない・書き換えない。詳細画面のいちばん下に時系列で出す。
+   ============================================================ */
+const HLABEL = {
+  type:'種別', vendor:'取引先', vendorId:'取引先', store:'店舗・部門', amount:'金額',
+  issuedAt:'発行日', dueAt:'支払期日', period:'対象月', status:'状態', memo:'メモ',
+  fileLink:'ファイルのリンク', hasFile:'添付ファイル', fileName:'ファイル名',
+  title:'タイトル', date:'日付', body:'本文', decisions:'決定事項', todos:'ToDo', attendees:'参加者',
+  name:'取引先名', kana:'よみ', closeDay:'締め日', payMonth:'支払月', payDay:'支払日',
+  bankName:'金融機関', bankBranch:'支店', bankType:'預金種別', bankNumber:'口座番号', bankHolder:'口座名義',
+  contact:'担当者', tel:'電話', email:'メール', contractLink:'契約書のリンク',
+  active:'有効', dayOfMonth:'発生日', label:'名称', startYM:'開始月', endYM:'終了月',
+};
+const HTARGET = { doc:'書類', minute:'議事録', vendor:'取引先', rule:'定期支払い' };
+
+function hval(field, v){
+  if(v===undefined || v===null || v==='') return '（空）';
+  if(field==='amount') return yen(v);
+  if(field==='status') return DSTATUS[v] || String(v);
+  if(field==='hasFile' || field==='active') return v ? 'あり' : 'なし';
+  if(field==='closeDay' || field==='payDay') return Number(v)>=31 ? '月末' : v+'日';
+  if(field==='payMonth') return ['当月','翌月','翌々月','翌々々月'][Number(v)] || (v+'か月後');
+  if(Array.isArray(v)) return v.map(x=> typeof x==='object' ? (x.text||JSON.stringify(x)) : x).join('、') || '（空）';
+  const s = String(v);
+  return s.length>60 ? s.slice(0,60)+'…' : s;
+}
+function diffFields(before, after){
+  const out=[];
+  const keys = new Set([...Object.keys(before||{}), ...Object.keys(after||{})]);
+  const skip = new Set(['updatedAt','editor','id','deleted','createdAt','createdBy','createdByEmail',
+                        'ocrText','ocrCands','ocrAt','fileType','fileSize','source','lastYM']);
+  keys.forEach(k=>{
+    if(skip.has(k)) return;
+    const a=before?before[k]:undefined, b=after?after[k]:undefined;
+    const sa = typeof a==='object' ? JSON.stringify(a) : String(a===undefined||a===null?'':a);
+    const sb = typeof b==='object' ? JSON.stringify(b) : String(b===undefined||b===null?'':b);
+    if(sa===sb) return;
+    out.push({ f:k, label:HLABEL[k]||k, from:hval(k,a), to:hval(k,b) });
+  });
+  return out;
+}
+/* 変更を1件記録する。失敗しても本体の保存は止めない。 */
+async function logChange(target, targetId, title, before, after, action, note){
+  try{
+    const changes = (action==='create' || action==='delete') ? [] : diffFields(before, after);
+    if(action==='update' && !changes.length) return;
+    const id = 'h'+Date.now()+Math.random().toString(36).slice(2,6);
+    await setDoc(doc(db,'history',id), {
+      id, target, targetId:String(targetId), title:String(title||'').slice(0,120),
+      action: action||'update', changes: changes.slice(0,30),
+      note: note||'', by:ME.name, byEmail:ME.email, at:nowISO() });
+  }catch(e){}
+}
+const ACTLABEL = { create:'作成しました', update:'変更しました', delete:'削除しました',
+                   status:'状態を進めました', file:'ファイルを操作しました' };
+
+async function mountHistory(container, target, targetId){
+  container.innerHTML='';
+  container.appendChild(el('div','sect-t','変更履歴'));
+  const box=el('div',null,'<div style="font-size:11.5px;color:#9aa3b2;padding:6px 0"><span class="spin"></span> 読み込み中</div>');
+  container.appendChild(box);
+  let rows=[];
+  try{
+    const s = await getDocs(query(collection(db,'history'), where('targetId','==',String(targetId)), limit(120)));
+    rows = s.docs.map(d=>d.data()).sort((a,b)=>(b.at||'').localeCompare(a.at||''));
+  }catch(e){}
+  box.innerHTML='';
+  if(!rows.length){
+    box.appendChild(el('div',null,'<div style="font-size:11.5px;color:#9aa3b2;padding:6px 0">まだ変更はありません。これから直したぶんが、ここに残ります。</div>'));
+    return;
+  }
+  const h=el('div','hist');
+  rows.slice(0,40).forEach((r,i)=>{
+    const w=el('div','hrow'+(i===0?' new':''));
+    let body='';
+    if(r.changes && r.changes.length){
+      body = r.changes.map(c=>`<div><span class="f">${esc(c.label)}</span>
+        <span class="o">${esc(c.from)}</span>→<span class="n">${esc(c.to)}</span></div>`).join('');
+    }else if(r.note){ body = `<div>${esc(r.note)}</div>`; }
+    w.innerHTML=`<div class="hh"><b>${esc(r.by||'')}</b>が${esc(ACTLABEL[r.action]||'変更しました')}
+      <span style="margin-left:auto">${esc(fmtT(r.at))}</span></div>
+      ${body?`<div class="hc">${body}</div>`:''}`;
+    h.appendChild(w);
+  });
+  box.appendChild(h);
+  if(rows.length>40) box.appendChild(el('div',null,`<div style="font-size:11px;color:#9aa3b2;padding:8px 0">ほか ${rows.length-40}件</div>`));
+}
+
+/* ============================================================
+   取引先マスタ（A-4）
+   ─────────────────────────────────────────────
+   支払サイト（月末締め翌月末払いなど）・振込先・担当者・契約書リンクを1か所に。
+   請求書を登録するとき取引先を選ぶだけで、支払期日が自動で入る。
+   ============================================================ */
+const PAYMONTHS = [[0,'当月'],[1,'翌月'],[2,'翌々月']];
+const DAYOPTS = (()=>{ const a=[]; for(let i=1;i<=30;i++) a.push([String(i), i+'日']); a.push(['31','月末']); return a; })();
+
+const daysInMonth = (y,m) => new Date(y, m+1, 0).getDate();       // m は 0始まり
+const daysInYM = ym => { const [y,m]=ym.split('-').map(Number); return daysInMonth(y, m-1); };
+const ymAdd = (ym, n) => { const [y,m]=ym.split('-').map(Number);
+  const t=new Date(y, m-1+n, 1); return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}`; };
+const thisYM = () => today().slice(0,7);
+
+/* 支払サイトから支払期日を出す */
+function calcDueDate(v, baseDate){
+  if(!v || !v.payDay) return '';
+  const d = new Date(baseDate || today());
+  if(isNaN(d)) return '';
+  const close = Number(v.closeDay || 31);
+  let mIndex = d.getMonth();
+  // 締め日を過ぎて発行されたぶんは、次の締めに乗る
+  if(close < 31 && d.getDate() > close) mIndex += 1;
+  const off = Number(v.payMonth==null ? 1 : v.payMonth);
+  const t = new Date(d.getFullYear(), mIndex + off, 1);
+  const last = daysInMonth(t.getFullYear(), t.getMonth());
+  const day = Math.min(Number(v.payDay||31), last);
+  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+function payTermsLabel(v){
+  if(!v || !v.payDay) return '支払サイト未設定';
+  const c = Number(v.closeDay||31)>=31 ? '月末' : (v.closeDay+'日');
+  const pm = ['当月','翌月','翌々月'][Number(v.payMonth==null?1:v.payMonth)] || '';
+  const pd = Number(v.payDay)>=31 ? '末' : (v.payDay+'日');
+  return `${c}締め ${pm}${pd}払い`;
+}
+const vendorById   = id => S.vendors.find(v=>v.id===id) || null;
+const vendorByName = nm => S.vendors.find(v=>v.name===nm) || null;
+const vendorFor    = d  => (d.vendorId && vendorById(d.vendorId)) || vendorByName(d.vendor);
+const activeVendors = () => S.vendors.filter(v=>v.active!==false)
+  .sort((a,b)=>String(a.kana||a.name||'').localeCompare(String(b.kana||b.name||''),'ja'));
+const docsOfVendor = v => S.docs.filter(d=> (v.id && d.vendorId===v.id) || (d.vendor && d.vendor===v.name));
+
+function newVendorObj(name){
+  return { id:'v'+Date.now()+Math.random().toString(36).slice(2,5), name:name||'', kana:'',
+    closeDay:31, payMonth:1, payDay:31, store:'', defaultType:'請求書', defaultAmount:null,
+    bankName:'', bankBranch:'', bankType:'普通', bankNumber:'', bankHolder:'',
+    contact:'', tel:'', email:'', contractLink:'', memo:'', active:true,
+    createdBy:ME.name, createdAt:nowISO(), updatedAt:nowISO(), deleted:false };
+}
+
+function renderVendors(){
+  const V=$('#view-vendors'); V.innerHTML='';
+  const p=el('div','page'); const w=el('div','page-w'); p.appendChild(w); V.appendChild(p);
+
+  const hd=el('div'); hd.style.cssText='display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap';
+  const ti=el('div');
+  ti.appendChild(el('h1',null,'取引先'));
+  ti.appendChild(el('div','lead','支払サイト・振込先・担当者・契約書を1か所に。請求書を登録するとき、取引先を選ぶだけで支払期日が入ります。'));
+  hd.appendChild(ti);
+  const acts=el('div'); acts.style.cssText='margin-left:auto;display:flex;gap:8px;flex-wrap:wrap';
+  const nb=el('button','btn primary','＋ 取引先を追加'); nb.onclick=()=>openVendor(null); acts.appendChild(nb);
+  const ib=el('button','btn','台帳から取り込む'); ib.onclick=()=>importVendorsFromDocs(); acts.appendChild(ib);
+  hd.appendChild(acts); w.appendChild(hd);
+
+  const f=el('div','filters'); f.style.marginTop='16px';
+  const kw=el('input','kw'); kw.placeholder='取引先名・よみ・担当者で検索'; kw.value=S.vfil.kw||'';
+  let t=null;
+  kw.oninput=()=>{ clearTimeout(t); t=setTimeout(()=>{ S.vfil.kw=kw.value; renderVendors();
+    const n=$('#view-vendors input.kw'); if(n){ n.focus(); n.setSelectionRange(n.value.length,n.value.length); } },250); };
+  f.appendChild(kw); w.appendChild(f);
+
+  const kws=(S.vfil.kw||'').toLowerCase().split(/\s+/).filter(Boolean);
+  const rows = activeVendors().filter(v=>{
+    if(!kws.length) return true;
+    const hay=`${v.name||''} ${v.kana||''} ${v.contact||''} ${v.memo||''} ${v.store||''}`.toLowerCase();
+    return kws.every(k=>hay.includes(k));
+  });
+
+  const openSum = S.docs.filter(d=>OPEN_ST.includes(d.status)).reduce((s,d)=>s+(Number(d.amount)||0),0);
+  const st=el('div','stat');
+  st.innerHTML = `${rows.length}件`
+    + (S.vendors.length!==rows.length ? `（全${S.vendors.length}件中）` : '')
+    + (openSum ? `　/　支払い待ち合計 ${yen(openSum)}` : '');
+  w.appendChild(st);
+
+  if(!S.vendors.length){
+    w.appendChild(el('div','empty',
+      'まだ取引先が登録されていません。<br>「台帳から取り込む」を押すと、いまの台帳に出てくる取引先名をそのままマスタにできます。'));
+    return;
+  }
+  if(!rows.length){ w.appendChild(el('div','empty','見つかりませんでした')); return; }
+
+  const g=el('div','vcards');
+  rows.forEach(v=>{
+    const ds = docsOfVendor(v);
+    const open = ds.filter(d=>OPEN_ST.includes(d.status));
+    const sum = open.reduce((s,d)=>s+(Number(d.amount)||0),0);
+    const rec = S.recurring.filter(r=>r.vendorId===v.id && r.active!==false).length;
+    const c=el('div','vcard');
+    c.innerHTML=`<div class="nm">${esc(v.name||'(名称未設定)')}</div>
+      ${v.kana?`<div class="kn">${esc(v.kana)}</div>`:''}
+      <div class="rw"><span class="pill t">${esc(payTermsLabel(v))}</span>
+        ${rec?`<span class="badge">定期 ${rec}</span>`:''}</div>
+      <div class="rw">書類 ${ds.length}件
+        ${open.length?`<span class="amt" style="margin-left:auto">${yen(sum)}</span>`:''}</div>`;
+    c.onclick=()=>openVendor(v.id);
+    g.appendChild(c);
+  });
+  w.appendChild(g);
+}
+
+function openVendor(id){
+  const isNew = !id;
+  const v = isNew ? newVendorObj() : S.vendors.find(x=>x.id===id);
+  if(!v) return;
+  const before = JSON.parse(JSON.stringify(v));
+
+  const bg=el('div','drawer-bg'); const dw=el('div','drawer');
+  const close=()=>{ bg.remove(); dw.remove(); S.vendorId=null; };
+  bg.onclick=close;
+
+  const hd=el('div','dh'); hd.style.position='relative';
+  hd.innerHTML=`<button class="x">&times;</button>
+    <div style="font-size:11.5px;color:var(--sub);letter-spacing:.05em">取引先</div>
+    <h2>${esc(v.name || '新しい取引先')}</h2>
+    <div style="font-size:12.5px;color:var(--sub);margin-top:4px">${esc(payTermsLabel(v))}</div>`;
+  hd.querySelector('.x').onclick=close;
+  dw.appendChild(hd);
+  const bd=el('div','db'); dw.appendChild(bd);
+
+  const g=el('div','fgrid');
+  const field=(label,node)=>{ g.appendChild(el('label',null,esc(label))); g.appendChild(node); return node; };
+  const hint=txt=>{ const h=el('div','hint',esc(txt)); g.appendChild(el('label',null,'')); g.appendChild(h); };
+  const inp=(val,type)=>{ const i=el('input'); i.type=type||'text'; i.value=val==null?'':val; return i; };
+  const sl=(val,opts)=>{ const s=el('select'); opts.forEach(([o,l])=>{ const e=el('option',null,esc(l)); e.value=o; s.appendChild(e); }); s.value=String(val==null?'':val); return s; };
+
+  const fName  = field('取引先名', inp(v.name));
+  const fKana  = field('よみ', inp(v.kana)); fKana.placeholder='はこもの（並び順に使います）';
+  const fStore = field('主な店舗', sl(v.store, [['','（指定なし）'],...STORES.map(s=>[s,s])]));
+  const fType  = field('よく使う種別', sl(v.defaultType||'請求書', DTYPES.map(t=>[t,t])));
+  const fAmt   = field('だいたいの金額', inp(v.defaultAmount,'number'));
+
+  bd.appendChild(g);
+  bd.appendChild(el('div','sect-t','支払サイト'));
+  const g2=el('div','fgrid'); const g2f=(l,n)=>{ g2.appendChild(el('label',null,esc(l))); g2.appendChild(n); return n; };
+  const fClose = g2f('締め日', sl(v.closeDay==null?31:v.closeDay, DAYOPTS));
+  const fPM    = g2f('支払いは', sl(v.payMonth==null?1:v.payMonth, PAYMONTHS.map(([a,b])=>[String(a),b])));
+  const fPD    = g2f('支払日', sl(v.payDay==null?31:v.payDay, DAYOPTS));
+  bd.appendChild(g2);
+  const prev=el('div','help'); bd.appendChild(prev);
+  const drawPrev=()=>{
+    const tmp={closeDay:Number(fClose.value), payMonth:Number(fPM.value), payDay:Number(fPD.value)};
+    prev.innerHTML = `${esc(payTermsLabel(tmp))}　—　きょう（${today()}）発行なら 支払期日は <b>${esc(calcDueDate(tmp, today())||'—')}</b> になります。`;
+  };
+  [fClose,fPM,fPD].forEach(x=>x.onchange=drawPrev); drawPrev();
+
+  bd.appendChild(el('div','sect-t','振込先'));
+  const g3=el('div','fgrid'); const g3f=(l,n)=>{ g3.appendChild(el('label',null,esc(l))); g3.appendChild(n); return n; };
+  const fBank  = g3f('金融機関', inp(v.bankName));
+  const fBr    = g3f('支店', inp(v.bankBranch));
+  const fBt    = g3f('預金種別', sl(v.bankType||'普通', [['普通','普通'],['当座','当座'],['貯蓄','貯蓄']]));
+  const fBn    = g3f('口座番号', inp(v.bankNumber));
+  const fBh    = g3f('口座名義', inp(v.bankHolder));
+  bd.appendChild(g3);
+
+  bd.appendChild(el('div','sect-t','担当者・書類'));
+  const g4=el('div','fgrid'); const g4f=(l,n)=>{ g4.appendChild(el('label',null,esc(l))); g4.appendChild(n); return n; };
+  const fCon   = g4f('担当者', inp(v.contact));
+  const fTel   = g4f('電話', inp(v.tel));
+  const fMail  = g4f('メール', inp(v.email));
+  const fCtr   = g4f('契約書のリンク', inp(v.contractLink));
+  fCtr.placeholder='Googleドライブの共有リンクなど';
+  const fMemo  = g4f('メモ', el('textarea')); fMemo.value=v.memo||'';
+  const fAct   = g4f('取引中', (()=>{ const c=el('input'); c.type='checkbox'; c.checked=v.active!==false;
+    c.style.cssText='width:16px;height:16px;accent-color:var(--accent)'; return c; })());
+  bd.appendChild(g4);
+
+  const rw=el('div'); rw.style.cssText='display:flex;gap:8px;margin-top:18px;flex-wrap:wrap';
+  const save=el('button','btn primary', isNew?'追加する':'保存');
+  rw.appendChild(save);
+  if(!isNew){
+    const del=el('button','btn','削除');
+    del.onclick=async()=>{
+      if(!confirm('この取引先をマスタから消します。台帳の書類は消えません。よろしいですか？')) return;
+      await setDoc(doc(db,'vendors',v.id), {deleted:true, updatedAt:nowISO()}, {merge:true});
+      await logChange('vendor', v.id, v.name, null, null, 'delete');
+      S.vendors = S.vendors.filter(x=>x.id!==v.id);
+      await idbSet('vendors_cache', null);
+      close(); renderVendors(); toast('削除しました');
+    };
+    rw.appendChild(del);
+    const nd=el('button','btn','この取引先で請求書を登録');
+    nd.onclick=()=>{ close(); newDoc({vendorId:v.id}); };
+    rw.appendChild(nd);
+  }
+  bd.appendChild(rw);
+
+  save.onclick=async()=>{
+    const name=fName.value.trim();
+    if(!name) return alert('取引先名を入れてください。');
+    const after = {...v, name, kana:fKana.value.trim(), store:fStore.value, defaultType:fType.value,
+      defaultAmount: fAmt.value===''? null : Number(fAmt.value),
+      closeDay:Number(fClose.value), payMonth:Number(fPM.value), payDay:Number(fPD.value),
+      bankName:fBank.value.trim(), bankBranch:fBr.value.trim(), bankType:fBt.value,
+      bankNumber:fBn.value.trim(), bankHolder:fBh.value.trim(),
+      contact:fCon.value.trim(), tel:fTel.value.trim(), email:fMail.value.trim(),
+      contractLink:fCtr.value.trim(), memo:fMemo.value, active:fAct.checked,
+      updatedAt:nowISO(), editor:ME.name, deleted:false };
+    await setDoc(doc(db,'vendors',v.id), after);
+    await logChange('vendor', v.id, name, isNew?null:before, after, isNew?'create':'update');
+    const i=S.vendors.findIndex(x=>x.id===v.id);
+    if(i<0) S.vendors.push(after); else S.vendors[i]=after;
+    await idbSet('vendors_cache', null);
+    close(); renderVendors(); toast(isNew?'追加しました':'保存しました');
+  };
+
+  if(!isNew){
+    // この取引先の書類
+    const ds = docsOfVendor(v).slice().sort((a,b)=>String(b.issuedAt||'').localeCompare(String(a.issuedAt||'')));
+    bd.appendChild(el('div','sect-t',`この取引先の書類 ${ds.length}件`));
+    if(!ds.length) bd.appendChild(el('div',null,'<div style="font-size:11.5px;color:#9aa3b2">まだありません</div>'));
+    else{
+      const box=el('div','listbox');
+      ds.slice(0,12).forEach(d=>{
+        const r=el('div','srow');
+        r.innerHTML=`<span class="pill ${esc(d.status||'checked')}">${esc(DSTATUS[d.status]||'—')}</span>
+          <b>${esc(d.period||d.issuedAt||'')}</b><span class="s">${esc(d.store||'')}</span>
+          <span class="d">${yen(d.amount)}</span>`;
+        r.onclick=()=>{ close(); go('docs'); openDoc(d.id); };
+        box.appendChild(r);
+      });
+      bd.appendChild(box);
+      if(ds.length>12) bd.appendChild(el('div',null,`<div style="font-size:11px;color:#9aa3b2;margin-top:6px">ほか ${ds.length-12}件</div>`));
+    }
+    const hw=el('div'); bd.appendChild(hw); mountHistory(hw, 'vendor', v.id);
+  }
+
+  document.body.appendChild(bg); document.body.appendChild(dw);
+  S.vendorId=v.id;
+  if(isNew) fName.focus();
+}
+
+/* 台帳に出てくる取引先名から、マスタをまとめて作る */
+function importVendorsFromDocs(){
+  const known = new Set(S.vendors.map(v=>v.name));
+  const counts = new Map();
+  S.docs.forEach(d=>{ const n=(d.vendor||'').trim(); if(!n || known.has(n)) return;
+    counts.set(n, (counts.get(n)||0)+1); });
+  const names=[...counts.entries()].sort((a,b)=>b[1]-a[1]);
+  const m=el('div','modal');
+  m.innerHTML=`<div class="box"><h3>台帳から取引先を取り込む</h3>
+    <p>いまの台帳に出てくる取引先名のうち、マスタにまだ無いものを一覧にしました。
+       チェックしたぶんを登録します。支払サイトはあとから1件ずつ入れてください（既定は「月末締め 翌月末払い」）。</p>
+    <div id="vlist" style="max-height:320px;overflow:auto;border:1px solid var(--line);border-radius:5px;padding:6px 10px"></div>
+    <div class="row"><button id="vc">閉じる</button><button id="vg" class="primary">選んだぶんを登録</button></div></div>`;
+  document.body.appendChild(m);
+  const list=m.querySelector('#vlist');
+  if(!names.length) list.innerHTML='<div style="font-size:12px;color:var(--sub);padding:12px 0">新しく取り込める取引先はありません。</div>';
+  names.forEach(([n,c])=>{
+    const r=el('label','swrow');
+    r.innerHTML=`<input type="checkbox" checked value="${esc(n)}"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(n)}</span><span style="color:#9aa3b2;font-size:11.5px">${c}件</span>`;
+    list.appendChild(r);
+  });
+  m.querySelector('#vc').onclick=()=>m.remove();
+  m.querySelector('#vg').onclick=async()=>{
+    const picked=[...list.querySelectorAll('input:checked')].map(i=>i.value);
+    if(!picked.length) return m.remove();
+    let b=writeBatch(db), i=0;
+    for(const n of picked){
+      const v=newVendorObj(n);
+      const d=S.docs.find(x=>x.vendor===n);
+      if(d && d.store) v.store=d.store;
+      b.set(doc(db,'vendors',v.id), v); S.vendors.push(v);
+      if(++i%300===0){ await b.commit(); b=writeBatch(db); }
+    }
+    await b.commit();
+    await idbSet('vendors_cache', null);
+    m.remove(); renderVendors(); toast(`${picked.length}件を登録しました`);
+  };
+}
+
+/* ============================================================
+   定期支払い（A-1）
+   ─────────────────────────────────────────────
+   毎月ほぼ同額で必ず来るもの（hacomono・税理士・家賃など）をルールにしておき、
+   毎月「予定」の行を台帳に自動で立てる。
+   月が進んでも予定のままで請求書が紐づいていない ＝ 請求書が届いていない、が見える。
+   ============================================================ */
+function newRuleObj(){
+  return { id:'r'+Date.now()+Math.random().toString(36).slice(2,5), label:'', vendorId:'', vendor:'',
+    store:STORES[0], type:'請求書', amount:null, dayOfMonth:1, dueDay:null,
+    startYM:thisYM(), endYM:'', memo:'', active:true,
+    createdBy:ME.name, createdAt:nowISO(), updatedAt:nowISO(), deleted:false };
+}
+const recId = (ruleId, ym) => `rec_${ruleId}_${ym.replace('-','')}`;
+
+/* 予定を立てる対象の月。今月と、月末が近ければ来月ぶんも先に立てる */
+function recurringTargetMonths(){
+  const t=new Date();
+  const out=[thisYM()];
+  if(t.getDate() >= daysInMonth(t.getFullYear(), t.getMonth()) - 6) out.push(ymAdd(thisYM(), 1));
+  return out;
+}
+function ruleDue(r, issued){
+  if(r.dueDay){
+    const d=new Date(issued);
+    const t=new Date(d.getFullYear(), d.getMonth()+1, 1);   // 既定は翌月
+    const last=daysInMonth(t.getFullYear(), t.getMonth());
+    const day=Math.min(Number(r.dueDay), last);
+    return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  }
+  return calcDueDate(vendorById(r.vendorId), issued);
+}
+function plannedDocFor(r, ym){
+  const id=recId(r.id, ym);
+  const v=vendorById(r.vendorId);
+  const day=Math.min(Number(r.dayOfMonth||1), daysInYM(ym));
+  const issued=`${ym}-${String(day).padStart(2,'0')}`;
+  return { id, type:r.type||'請求書', vendor:r.vendor || (v?v.name:''), vendorId:r.vendorId||'',
+    amount: r.amount==null?null:Number(r.amount),
+    issuedAt:issued, dueAt:ruleDue(r, issued), period:ym,
+    store:r.store||'', section:'', status:'planned', planned:true, recurringId:r.id, recurringYM:ym,
+    fileName:'', hasFile:false, fileSize:0, fileType:'', filePath:'', fileLink:'',
+    noteId:'', noteTitle:'', folder:'', memo:r.memo||'',
+    createdBy:'（定期支払いより自動）', createdByEmail:'', createdAt:nowISO(), updatedAt:nowISO(),
+    deleted:false, source:'recurring' };
+}
+/* 足りていない予定行を作る。同じIDなので何度実行しても増えない */
+async function ensureRecurring(monthsOverride){
+  const rules = S.recurring.filter(r=>r.active!==false && !r.deleted);
+  if(!rules.length) return 0;
+  const months = monthsOverride || recurringTargetMonths();
+  const have = new Set(S.docs.map(d=>d.id));
+  const make=[];
+  rules.forEach(r=>months.forEach(ym=>{
+    if(r.startYM && ym < r.startYM) return;
+    if(r.endYM && ym > r.endYM) return;
+    if(have.has(recId(r.id, ym))) return;
+    make.push(plannedDocFor(r, ym));
+  }));
+  if(!make.length) return 0;
+  let b=writeBatch(db), i=0;
+  for(const d of make){
+    b.set(doc(db,'documents',d.id), d);
+    if(++i%300===0){ await b.commit(); b=writeBatch(db); }
+  }
+  await b.commit();
+  make.forEach(d=>S.docs.push(d));
+  await idbSet('docs_cache', null);
+  return make.length;
+}
+
+/* 請求書が届いていない予定行。発行予定日を過ぎてもファイルもリンクも無いもの */
+function missingInvoices(){
+  const t=today();
+  return S.docs.filter(d=> d.status==='planned' && !d.deleted
+      && !d.hasFile && !d.filePath && !d.fileLink
+      && (d.issuedAt||'') <= t)
+    .sort((a,b)=>String(a.issuedAt||'').localeCompare(String(b.issuedAt||'')));
+}
+
+function renderRecurring(){
+  const V=$('#view-recurring'); V.innerHTML='';
+  const p=el('div','page'); const w=el('div','page-w'); p.appendChild(w); V.appendChild(p);
+
+  const hd=el('div'); hd.style.cssText='display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap';
+  const ti=el('div');
+  ti.appendChild(el('h1',null,'定期支払い'));
+  ti.appendChild(el('div','lead','毎月かならず来るものを登録しておくと、月初に台帳へ「予定」の行が自動で立ちます。予定のまま請求書が来ない＝届いていない、が見えます。'));
+  hd.appendChild(ti);
+  const acts=el('div'); acts.style.cssText='margin-left:auto;display:flex;gap:8px;flex-wrap:wrap';
+  const nb=el('button','btn primary','＋ 定期支払いを追加'); nb.onclick=()=>openRule(null); acts.appendChild(nb);
+  const gb=el('button','btn','いま予定を作る');
+  gb.onclick=async()=>{ gb.disabled=true; gb.textContent='作成中…';
+    const n=await ensureRecurring(); gb.disabled=false; gb.textContent='いま予定を作る';
+    toast(n? `${n}件の予定を立てました` : '不足している予定はありません'); renderRecurring(); };
+  acts.appendChild(gb);
+  hd.appendChild(acts); w.appendChild(hd);
+
+  // 届いていない請求書
+  const miss = missingInvoices();
+  if(miss.length){
+    const b=el('div','miss');
+    b.innerHTML=`<b>請求書が届いていないかもしれません（${miss.length}件）</b>
+      <div class="mt">予定日を過ぎましたが、まだファイルもリンクも付いていません。先方に確認してください。</div>`;
+    miss.slice(0,8).forEach(d=>{
+      const r=el('div','mi');
+      const late=daysBetween(d.issuedAt, today());
+      r.innerHTML=`<span>${esc(d.vendor||'(取引先未設定)')}</span>
+        <span style="color:var(--sub)">${esc(d.period||'')}・${yen(d.amount)}</span>
+        <span class="d">予定日から ${late}日</span>`;
+      r.onclick=()=>{ go('docs'); openDoc(d.id); };
+      b.appendChild(r);
+    });
+    w.appendChild(b);
+  }
+
+  const rules = S.recurring.filter(r=>!r.deleted)
+    .sort((a,b)=>(b.active!==false)-(a.active!==false) || String(a.vendor||'').localeCompare(String(b.vendor||''),'ja'));
+  const monthly = rules.filter(r=>r.active!==false).reduce((s,r)=>s+(Number(r.amount)||0),0);
+  const st=el('div','stat');
+  st.innerHTML = `${rules.length}件`
+    + (monthly ? `　/　毎月の固定費 ${yen(monthly)}` : '')
+    + `　/　次に予定を立てる月 ${esc(recurringTargetMonths().join('・'))}`;
+  w.appendChild(st);
+
+  if(!rules.length){
+    w.appendChild(el('div','empty',
+      'まだ登録がありません。<br>hacomono・税理士・家賃・リースなど、毎月ほぼ同額で必ず来るものを入れてください。'));
+    return;
+  }
+
+  const g=el('div','vcards');
+  rules.forEach(r=>{
+    const ym=thisYM();
+    const d=S.docs.find(x=>x.id===recId(r.id, ym));
+    const state = !d ? ['—','未作成']
+      : d.status==='planned' ? ['planned','予定（請求書待ち）']
+      : [d.status, DSTATUS[d.status]||''];
+    const c=el('div','vcard');
+    c.innerHTML=`<div class="nm">${esc(r.label || r.vendor || '(名称未設定)')}</div>
+      <div class="kn">${esc(r.vendor||'')}${r.store?'　'+esc(r.store):''}</div>
+      <div class="rw"><span class="amt">${yen(r.amount)}</span>
+        <span style="color:var(--sub)">毎月${esc(String(r.dayOfMonth||1))}日ごろ</span>
+        ${r.active===false?'<span class="badge">停止中</span>':''}</div>
+      <div class="rw">今月：<span class="pill ${esc(state[0])}">${esc(state[1])}</span></div>`;
+    c.onclick=()=>openRule(r.id);
+    g.appendChild(c);
+  });
+  w.appendChild(g);
+}
+
+function openRule(id){
+  const isNew=!id;
+  const r = isNew ? newRuleObj() : S.recurring.find(x=>x.id===id);
+  if(!r) return;
+  const before = JSON.parse(JSON.stringify(r));
+
+  const bg=el('div','drawer-bg'); const dw=el('div','drawer');
+  const close=()=>{ bg.remove(); dw.remove(); };
+  bg.onclick=close;
+
+  const hd=el('div','dh'); hd.style.position='relative';
+  hd.innerHTML=`<button class="x">&times;</button>
+    <div style="font-size:11.5px;color:var(--sub);letter-spacing:.05em">定期支払い</div>
+    <h2>${esc(r.label || r.vendor || '新しい定期支払い')}</h2>`;
+  hd.querySelector('.x').onclick=close;
+  dw.appendChild(hd);
+  const bd=el('div','db'); dw.appendChild(bd);
+
+  const g=el('div','fgrid');
+  const f=(l,n)=>{ g.appendChild(el('label',null,esc(l))); g.appendChild(n); return n; };
+  const inp=(v,t)=>{ const i=el('input'); i.type=t||'text'; i.value=v==null?'':v; return i; };
+  const sl=(v,opts)=>{ const s=el('select'); opts.forEach(([o,l])=>{ const e=el('option',null,esc(l)); e.value=o; s.appendChild(e); }); s.value=String(v==null?'':v); return s; };
+
+  const fLabel = f('名称', inp(r.label)); fLabel.placeholder='例：hacomono 月額';
+  const fVen   = f('取引先', sl(r.vendorId, [['','（マスタから選ぶ）'],...activeVendors().map(v=>[v.id,v.name])]));
+  const fVenTx = f('取引先名（直接入力）', inp(r.vendor));
+  const fStore = f('店舗・部門', sl(r.store, STORES.map(s=>[s,s])));
+  const fType  = f('種別', sl(r.type||'請求書', DTYPES.map(t=>[t,t])));
+  const fAmt   = f('毎月の金額', inp(r.amount,'number'));
+  const fDay   = f('毎月の発生日', sl(r.dayOfMonth||1, DAYOPTS));
+  const fDue   = f('支払期日', sl(r.dueDay||'', [['','取引先の支払サイトに従う'],...DAYOPTS.map(([a,b])=>[a,'翌月'+b])]));
+  const fStart = f('開始月', inp(r.startYM)); fStart.placeholder='2026-08';
+  const fEnd   = f('終了月', inp(r.endYM));   fEnd.placeholder='空欄なら終わりなし';
+  const fMemo  = f('メモ', el('textarea')); fMemo.value=r.memo||'';
+  const fAct   = f('有効', (()=>{ const c=el('input'); c.type='checkbox'; c.checked=r.active!==false;
+    c.style.cssText='width:16px;height:16px;accent-color:var(--accent)'; return c; })());
+  bd.appendChild(g);
+
+  const prev=el('div','help'); bd.appendChild(prev);
+  const drawPrev=()=>{
+    const tmp={...r, vendorId:fVen.value, dueDay:fDue.value?Number(fDue.value):null,
+      dayOfMonth:Number(fDay.value), amount: fAmt.value===''?null:Number(fAmt.value)};
+    const ym=thisYM();
+    const d=plannedDocFor({...tmp, id:'preview'}, ym);
+    prev.innerHTML=`今月なら <b>${esc(d.issuedAt)}</b> に予定を立て、支払期日は <b>${esc(d.dueAt||'—（取引先の支払サイトが未設定）')}</b> になります。`;
+  };
+  [fVen,fDay,fDue,fAmt].forEach(x=>x.onchange=drawPrev);
+  fVen.onchange=()=>{ const v=vendorById(fVen.value);
+    if(v){ if(!fVenTx.value) fVenTx.value=v.name; if(!fAmt.value && v.defaultAmount) fAmt.value=v.defaultAmount;
+           if(v.store) fStore.value=v.store; }
+    drawPrev(); };
+  drawPrev();
+
+  const rw=el('div'); rw.style.cssText='display:flex;gap:8px;margin-top:18px;flex-wrap:wrap';
+  const save=el('button','btn primary', isNew?'追加する':'保存'); rw.appendChild(save);
+  if(!isNew){
+    const del=el('button','btn','削除');
+    del.onclick=async()=>{
+      if(!confirm('この定期支払いを消します。すでに立った予定の行は残ります。よろしいですか？')) return;
+      await setDoc(doc(db,'recurring',r.id), {deleted:true, updatedAt:nowISO()}, {merge:true});
+      await logChange('rule', r.id, r.label||r.vendor, null, null, 'delete');
+      S.recurring=S.recurring.filter(x=>x.id!==r.id);
+      await idbSet('recurring_cache', null);
+      close(); renderRecurring(); toast('削除しました');
+    };
+    rw.appendChild(del);
+  }
+  bd.appendChild(rw);
+
+  save.onclick=async()=>{
+    const v=vendorById(fVen.value);
+    const after={...r, label:fLabel.value.trim(), vendorId:fVen.value,
+      vendor: fVenTx.value.trim() || (v?v.name:''), store:fStore.value, type:fType.value,
+      amount: fAmt.value===''?null:Number(fAmt.value), dayOfMonth:Number(fDay.value),
+      dueDay: fDue.value ? Number(fDue.value) : null,
+      startYM:fStart.value.trim(), endYM:fEnd.value.trim(), memo:fMemo.value, active:fAct.checked,
+      updatedAt:nowISO(), editor:ME.name, deleted:false };
+    if(!after.vendor && !after.label) return alert('名称か取引先のどちらかは入れてください。');
+    await setDoc(doc(db,'recurring',r.id), after);
+    await logChange('rule', r.id, after.label||after.vendor, isNew?null:before, after, isNew?'create':'update');
+    const i=S.recurring.findIndex(x=>x.id===r.id);
+    if(i<0) S.recurring.push(after); else S.recurring[i]=after;
+    await idbSet('recurring_cache', null);
+    if(after.active){ try{ await ensureRecurring(); }catch(e){} }
+    close(); renderRecurring(); toast(isNew?'追加しました':'保存しました');
+  };
+
+  if(!isNew){
+    const ds=S.docs.filter(d=>d.recurringId===r.id)
+      .sort((a,b)=>String(b.period||'').localeCompare(String(a.period||'')));
+    bd.appendChild(el('div','sect-t',`この定期支払いから立った行 ${ds.length}件`));
+    if(!ds.length) bd.appendChild(el('div',null,'<div style="font-size:11.5px;color:#9aa3b2">まだありません</div>'));
+    else{
+      const box=el('div','listbox');
+      ds.slice(0,12).forEach(d=>{
+        const row=el('div','srow');
+        row.innerHTML=`<span class="pill ${esc(d.status||'checked')}">${esc(DSTATUS[d.status]||'—')}</span>
+          <b>${esc(d.period||'')}</b><span class="s">期日 ${esc(d.dueAt||'—')}</span><span class="d">${yen(d.amount)}</span>`;
+        row.onclick=()=>{ close(); go('docs'); openDoc(d.id); };
+        box.appendChild(row);
+      });
+      bd.appendChild(box);
+    }
+    const hw=el('div'); bd.appendChild(hw); mountHistory(hw, 'rule', r.id);
+  }
+
+  document.body.appendChild(bg); document.body.appendChild(dw);
+  if(isNew) fLabel.focus();
+}
+
+/* ============================================================
+   支払いカレンダー（A-5）
+   ============================================================ */
+const WDAY=['日','月','火','水','木','金','土'];
+function renderDocCalendar(w, rows){
+  const ym = S.calYM || thisYM();
+  const [y,m] = ym.split('-').map(Number);
+  const first = new Date(y, m-1, 1);
+  const start = new Date(y, m-1, 1 - first.getDay());
+  const inMonth = rows.filter(d=>(d.dueAt||'').slice(0,7)===ym);
+  const sum = a => a.reduce((s,d)=>s+(Number(d.amount)||0),0);
+  const openRows = inMonth.filter(d=>OPEN_ST.includes(d.status) || d.status==='planned');
+  const paidRows = inMonth.filter(d=>d.status==='paid');
+
+  const bar=el('div','calbar');
+  const prev=el('button','btn sm','←'); prev.onclick=()=>{ S.calYM=ymAdd(ym,-1); renderDocs(); };
+  const next=el('button','btn sm','→'); next.onclick=()=>{ S.calYM=ymAdd(ym, 1); renderDocs(); };
+  const now =el('button','btn sm','今月'); now.onclick=()=>{ S.calYM=thisYM(); renderDocs(); };
+  bar.appendChild(prev);
+  bar.appendChild(el('div','mo',`${y}年${m}月`));
+  bar.appendChild(next); bar.appendChild(now);
+  const s=el('div','sum');
+  s.innerHTML = `この月に出ていくお金 <b>${yen(sum(openRows))}</b>（${openRows.length}件）`
+    + (paidRows.length? `　/　支払済 ${yen(sum(paidRows))}` : '');
+  bar.appendChild(s);
+  w.appendChild(bar);
+
+  const byDay = new Map();
+  inMonth.forEach(d=>{ const k=d.dueAt; if(!byDay.has(k)) byDay.set(k,[]); byDay.get(k).push(d); });
+
+  const cal=el('div','cal');
+  WDAY.forEach((d,i)=>cal.appendChild(el('div','dow'+(i===0?' sun':i===6?' sat':''), d)));
+  const t=today();
+  for(let i=0;i<42;i++){
+    const dt=new Date(start.getFullYear(), start.getMonth(), start.getDate()+i);
+    const iso=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+    const out = dt.getMonth() !== m-1;
+    if(out && i>=35) continue;
+    const c=el('div','cell'+(out?' out':'')+(iso===t?' today':''));
+    const list=(byDay.get(iso)||[]).sort((a,b)=>(Number(b.amount)||0)-(Number(a.amount)||0));
+    const dsum=list.reduce((s2,d)=>s2+(Number(d.amount)||0),0);
+    c.appendChild(el('div','dn',`${dt.getDate()}${dsum?`<span class="t">${yen(dsum)}</span>`:''}`));
+    list.slice(0,3).forEach(d=>{
+      const e=el('div','ev '+(d.status||'checked'));
+      e.innerHTML=`<span class="a">${d.amount?Number(d.amount).toLocaleString('ja-JP'):''}</span>${esc(d.vendor||d.type||'')}`;
+      e.title=`${d.vendor||''} ${yen(d.amount)} ${DSTATUS[d.status]||''}`;
+      e.onclick=()=>openDoc(d.id);
+      c.appendChild(e);
+    });
+    if(list.length>3){
+      const mo=el('div','more',`ほか ${list.length-3}件`);
+      mo.onclick=()=>{ S.dfil={...S.dfil, day:iso}; S.docView='table'; renderDocs(); };
+      c.appendChild(mo);
+    }
+    cal.appendChild(c);
+  }
+  w.appendChild(cal);
+
+  const legend=el('div','help');
+  legend.innerHTML='支払期日の日に置いています。<span class="pill planned">予定</span> は定期支払いから自動で立った行、'
+    + '<span class="pill unpaid">未払い</span> は支払い待ち、<span class="pill paid">支払済</span> は済んだものです。';
+  legend.style.marginTop='10px';
+  w.appendChild(legend);
+
+  const noDue = rows.filter(d=>!d.dueAt && OPEN_ST.includes(d.status));
+  if(noDue.length){
+    const n=el('div','miss');
+    n.innerHTML=`<b>支払期日が入っていない書類が ${noDue.length}件 あります</b>
+      <div class="mt">期日が無いとカレンダーに出ません。取引先マスタに支払サイトを入れておくと、次からは自動で入ります。</div>`;
+    noDue.slice(0,6).forEach(d=>{
+      const r=el('div','mi');
+      r.innerHTML=`<span>${esc(d.vendor||'(取引先未設定)')}</span><span style="color:var(--sub)">${esc(d.period||d.issuedAt||'')}</span><span class="d">${yen(d.amount)}</span>`;
+      r.onclick=()=>openDoc(d.id);
+      n.appendChild(r);
+    });
+    w.appendChild(n);
+  }
+}
+
+/* ============================================================
+   OCR（A-2）— ブラウザの中だけで読む。外に送らない
+   ─────────────────────────────────────────────
+   Tesseract.js で日本語OCR。PDFは pdf.js で1ページ目を画像にしてから読む。
+   読み取った金額は「候補」として出し、押したものだけを採用する。
+   ============================================================ */
+const TESS_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js';
+const PDFJS_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
+const PDFJS_WORKER = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+
+function loadScript(src){
+  return new Promise((res,rej)=>{
+    if([...document.scripts].some(s=>s.src===src)) return res();
+    const s=document.createElement('script'); s.src=src; s.async=true;
+    s.onload=()=>res(); s.onerror=()=>rej(new Error('読み込めませんでした（ネットにつながっているか確認してください）'));
+    document.head.appendChild(s);
+  });
+}
+async function ensureTesseract(){ if(!window.Tesseract) await loadScript(TESS_URL); return window.Tesseract; }
+async function ensurePdfjs(){
+  if(!window.pdfjsLib) await loadScript(PDFJS_URL);
+  if(window.pdfjsLib && !window.pdfjsLib.GlobalWorkerOptions.workerSrc)
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+  return window.pdfjsLib;
+}
+
+/* 読み取る対象（画像ならそのまま、PDFなら1ページ目を画像にする） */
+async function ocrSource(d, onMsg){
+  const f = await loadDocFile(d.id);
+  if(!f) throw new Error('アプリの中にファイルがありません。先に写真かPDFを添付してください。');
+  if(/^image\//.test(f.type||'')) return f.url;
+  if(/pdf/i.test(f.type||'') || /\.pdf$/i.test(f.name||'')){
+    onMsg && onMsg('PDFを画像にしています…');
+    const pdfjs = await ensurePdfjs();
+    const buf = await (await fetch(f.url)).arrayBuffer();
+    const pdf = await pdfjs.getDocument({data:buf}).promise;
+    const page = await pdf.getPage(1);
+    const vp = page.getViewport({scale:2});
+    const cv = document.createElement('canvas');
+    cv.width=vp.width; cv.height=vp.height;
+    await page.render({canvasContext:cv.getContext('2d'), viewport:vp}).promise;
+    return cv;
+  }
+  throw new Error('この形式は読み取れません（写真かPDFにしてください）');
+}
+
+/* 金額の候補を拾う。合計・ご請求金額などの近くにある数字を優先する */
+const AMT_KEYS = ['合計','ご請求','御請求','請求金額','お支払','支払金額','総額','税込','小計','計'];
+const NEG_KEYS = ['消費税','内税','外税','税額','単価','数量','電話','TEL','〒','振込手数料','ページ'];
+function parseAmounts(text){
+  const norm = (text||'')
+    .replace(/[０-９]/g, c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+    .replace(/[，]/g, ',').replace(/[￥]/g,'¥');
+  const lines = norm.split(/\n/);
+  const found = new Map();
+  lines.forEach(line=>{
+    const kw  = AMT_KEYS.some(k=>line.includes(k));
+    const neg = NEG_KEYS.some(k=>line.includes(k));
+    const re = /(¥|\\)?\s*([0-9][0-9,\s]{2,})\s*(円)?/g;
+    let mm;
+    while((mm = re.exec(line))){
+      const raw = mm[2].replace(/[,\s]/g,'');
+      if(raw.length<3 || raw.length>9) continue;
+      const n = Number(raw);
+      if(!n || n<100 || n>99999999) continue;
+      let score = 0;
+      if(kw) score += 6;
+      if(neg) score -= 5;
+      if(mm[1]) score += 3;
+      if(mm[3]) score += 2;
+      if(mm[2].includes(',')) score += 3;
+      if(/(合計|ご請求|御請求|請求金額|お支払)/.test(line)) score += 3;
+      score += Math.min(3, String(n).length - 3);
+      const cur = found.get(n);
+      if(!cur || cur.score < score) found.set(n, {n, score, line:line.trim().slice(0,60)});
+    }
+  });
+  return [...found.values()].sort((a,b)=> b.score-a.score || b.n-a.n).slice(0,6);
+}
+function parseDates(text){
+  const norm=(text||'').replace(/[０-９]/g, c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0));
+  const out=new Set();
+  const re1=/(20[0-9]{2})\s*[年\/\.\-]\s*([01]?[0-9])\s*[月\/\.\-]\s*([0-3]?[0-9])/g;
+  let m;
+  while((m=re1.exec(norm))){
+    const y=+m[1], mo=+m[2], d=+m[3];
+    if(mo<1||mo>12||d<1||d>31) continue;
+    out.add(`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
+  }
+  return [...out].sort().slice(0,6);
+}
+
+let _ocrWorker=null;
+async function ocrRecognize(src, onMsg){
+  const T = await ensureTesseract();
+  onMsg && onMsg('日本語の文字データを用意しています…（初回だけ少し待ちます）');
+  if(!_ocrWorker){
+    _ocrWorker = await T.createWorker('jpn', 1, {
+      logger: m => { if(m.status==='recognizing text') onMsg && onMsg(`読み取り中… ${Math.round((m.progress||0)*100)}%`); }
+    });
+  }
+  onMsg && onMsg('読み取り中…');
+  const { data } = await _ocrWorker.recognize(src);
+  return data.text || '';
+}
+
+/* 書類ひとつをOCRして、結果を保存する（金額は勝手に入れない） */
+async function ocrDoc(d, onMsg){
+  const src = await ocrSource(d, onMsg);
+  const text = await ocrRecognize(src, onMsg);
+  const amts = parseAmounts(text);
+  const dates = parseDates(text);
+  const patch = { ocrText:(text||'').slice(0,3000), ocrCands:amts.map(a=>a.n),
+                  ocrDates:dates, ocrAt:nowISO(), updatedAt:nowISO() };
+  Object.assign(d, patch);
+  try{
+    await setDoc(doc(db,'documents',d.id), patch, {merge:true});
+    await idbSet('docs_cache', null);
+  }catch(e){}
+  return { text, amts, dates };
+}
+
+/* 保存前のファイル（登録モーダル）をそのまま読む */
+async function ocrFile(file, onMsg){
+  let src = file;
+  if(/pdf/i.test(file.type||'') || /\.pdf$/i.test(file.name||'')){
+    onMsg && onMsg('PDFを画像にしています…');
+    const pdfjs = await ensurePdfjs();
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjs.getDocument({data:buf}).promise;
+    const page = await pdf.getPage(1);
+    const vp = page.getViewport({scale:2});
+    const cv = document.createElement('canvas');
+    cv.width=vp.width; cv.height=vp.height;
+    await page.render({canvasContext:cv.getContext('2d'), viewport:vp}).promise;
+    src = cv;
+  }
+  const text = await ocrRecognize(src, onMsg);
+  return { text, amts:parseAmounts(text), dates:parseDates(text) };
+}
+
+/* 詳細画面のOCRパネル */
+function mountOcr(container, d, onPick){
+  container.innerHTML='';
+  const box=el('div','ocrbox');
+  const hd=el('div','hd');
+  hd.innerHTML='<b>金額を読み取る（OCR）</b>';
+  const btn=el('button','btn sm','読み取る');
+  const help=el('span',null,'<span style="font-size:11px;color:#9aa3b2">端末の中だけで処理します</span>');
+  hd.appendChild(btn); hd.appendChild(help);
+  box.appendChild(hd);
+  const msg=el('div','msg'); box.appendChild(msg);
+  const cands=el('div','ocands'); box.appendChild(cands);
+  const rawWrap=el('div'); box.appendChild(rawWrap);
+  container.appendChild(box);
+
+  const show = (amts, dates, text)=>{
+    cands.innerHTML=''; rawWrap.innerHTML='';
+    if(!amts.length && !dates.length){
+      msg.textContent='読み取れる金額が見つかりませんでした。文字がつぶれている場合は、明るいところで撮り直すと精度が上がります。';
+    }else{
+      msg.innerHTML='<b>正しいものを押してください。</b>押したぶんだけが台帳に入ります。';
+    }
+    if(amts.length){
+      cands.appendChild(el('span',null,'<span style="font-size:11.5px;color:var(--sub);align-self:center">金額</span>'));
+      amts.forEach((a,i)=>{
+        const b=el('button', i===0?'best':'', yen(a.n));
+        b.title=a.line||'';
+        b.onclick=()=>onPick('amount', a.n);
+        cands.appendChild(b);
+      });
+    }
+    { const old=box.querySelector('#ocrdates'); if(old) old.remove(); }
+    if(dates.length){
+      const dr=el('div','ocands'); dr.id='ocrdates';
+      dr.appendChild(el('span',null,'<span style="font-size:11.5px;color:var(--sub);align-self:center">日付</span>'));
+      dates.forEach(x=>{
+        const b=el('button',null,x);
+        b.onclick=()=>{
+          const m=el('div','modal');
+          m.innerHTML=`<div class="box" style="width:360px"><h3>${esc(x)}</h3>
+            <p>どちらに入れますか？</p>
+            <div class="row"><button id="oi">発行日</button><button id="od" class="primary">支払期日</button></div></div>`;
+          document.body.appendChild(m);
+          m.querySelector('#oi').onclick=()=>{ onPick('issuedAt', x); m.remove(); };
+          m.querySelector('#od').onclick=()=>{ onPick('dueAt', x); m.remove(); };
+          m.onclick=e=>{ if(e.target===m) m.remove(); };
+        };
+        dr.appendChild(b);
+      });
+      box.insertBefore(dr, rawWrap);
+    }
+    if(text){
+      const tg=el('button','btn sm','読み取った文字を見る');
+      let open=false;
+      tg.onclick=()=>{ open=!open;
+        if(open){ const r=el('div','ocrraw',esc(text)); r.id='ocrraw'; rawWrap.appendChild(r); tg.textContent='文字を隠す'; }
+        else{ const r=rawWrap.querySelector('#ocrraw'); if(r) r.remove(); tg.textContent='読み取った文字を見る'; } };
+      rawWrap.appendChild(tg);
+    }
+  };
+
+  // すでに読み取り済みなら、その候補をすぐ出す
+  if(d.ocrCands && d.ocrCands.length){
+    show(d.ocrCands.map(n=>({n, line:''})), d.ocrDates||[], d.ocrText||'');
+    msg.innerHTML = `${fmtT(d.ocrAt)} に読み取った候補です。正しいものを押してください。`;
+    btn.textContent='もう一度読み取る';
+  }
+
+  btn.onclick=async()=>{
+    btn.disabled=true; cands.innerHTML=''; rawWrap.innerHTML='';
+    try{
+      const r = await ocrDoc(d, t=>{ msg.innerHTML=`<span class="spin"></span> ${esc(t)}`; });
+      show(r.amts, r.dates, r.text);
+    }catch(e){ msg.innerHTML=`<span style="color:var(--danger)">${esc(e.message)}</span>`; }
+    btn.disabled=false; btn.textContent='もう一度読み取る';
+  };
+}
+
+/* まとめてOCR（金額が空の書類を順番に読む） */
+function batchOcr(){
+  const targets = S.docs.filter(d=>(d.amount==null||d.amount==='') && d.hasFile && !d.deleted
+                                   && !(d.ocrCands && d.ocrCands.length));
+  const m=el('div','modal');
+  m.innerHTML=`<div class="box"><h3>まとめてOCR</h3>
+    <p>金額が空で、アプリの中にファイルがある書類を順番に読み取ります。<br>
+       <b>金額は自動では入りません。</b>候補を保存するだけなので、あとから台帳で押して確定してください。<br>
+       1件あたり5〜15秒かかります。この画面は開いたままにしてください。</p>
+    <div style="font-size:13px;margin-bottom:10px">対象 <b>${targets.length}件</b></div>
+    <div class="bar"><i id="obp"></i></div>
+    <div class="log" id="olg" style="display:none"></div>
+    <div class="row"><button id="ocl">閉じる</button><button id="ogo" class="primary"${targets.length?'':' disabled'}>はじめる</button></div></div>`;
+  document.body.appendChild(m);
+  let stop=false;
+  m.querySelector('#ocl').onclick=()=>{ stop=true; m.remove(); };
+  m.querySelector('#ogo').onclick=async()=>{
+    const go=m.querySelector('#ogo'); go.disabled=true; go.textContent='実行中…';
+    const lg=m.querySelector('#olg'); lg.style.display='block';
+    const log=t=>{ lg.textContent+=t+'\n'; lg.scrollTop=lg.scrollHeight; };
+    let ok=0;
+    for(let i=0;i<targets.length;i++){
+      if(stop) break;
+      const d=targets[i];
+      try{
+        const r=await ocrDoc(d, ()=>{});
+        ok++;
+        log(`${i+1}/${targets.length} ${d.vendor||d.fileName||d.id} → ${r.amts.length?r.amts.map(a=>yen(a.n)).join(' / '):'候補なし'}`);
+      }catch(e){ log(`${i+1}/${targets.length} ${d.vendor||d.id} → ${e.message}`); }
+      m.querySelector('#obp').style.width=((i+1)/targets.length*100).toFixed(0)+'%';
+    }
+    log(`終わりました（${ok}件）`);
+    go.textContent='完了'; renderDocs();
+  };
+}
+
+/* ============================================================
+   承認フロー（A-6）
+   ─────────────────────────────────────────────
+   担当が登録 → 経理が確認 → （金額が大きければ）マネージャーが承認 → 支払
+   金額のしきい値と、そもそも承認を使うかどうかは「管理」から変えられる。
+   ============================================================ */
+function needsApproval(d){
+  if(!S.settings.approvalOn) return false;
+  const min = Number(S.settings.approvalMin||0);
+  return Number(d.amount||0) >= min;
+}
+async function notifyRoles(roles, kind, title, body, link){
+  const to = S.members.filter(m=>roles.includes((m.role||'').toLowerCase()) && m.email !== ME.email);
+  for(const m of to) await pushNotif(m.email, kind, title, body, link);
+  return to.length;
+}
+function openApprovalSettings(){
+  const m=el('div','modal');
+  m.innerHTML=`<div class="box"><h3>承認フローの設定</h3>
+    <p>経理が確認したあと、マネージャーの承認を挟むかどうかを決めます。<br>
+       金額のしきい値を決めておくと、小さい支払いは今までどおり止まりません。</p>
+    <label class="swrow"><input type="checkbox" id="ap-on"${S.settings.approvalOn?' checked':''}>
+      <span>承認フローを使う（確認 → <b>承認</b> → 支払）</span></label>
+    <div class="fgrid" style="margin-top:12px">
+      <label>この金額以上</label><input id="ap-min" type="number" value="${Number(S.settings.approvalMin||0)}">
+    </div>
+    <div class="help">承認できるのは「マネージャー」と「管理者」の役割の人です。役割は members に role を入れて決めます。
+      いまのあなたは <b>${esc(ROLES[roleOf()]||roleOf())}</b> です。</div>
+    <div class="row"><button id="ap-c">キャンセル</button><button id="ap-s" class="primary">保存</button></div></div>`;
+  document.body.appendChild(m);
+  m.querySelector('#ap-c').onclick=()=>m.remove();
+  m.querySelector('#ap-s').onclick=async()=>{
+    await saveSettings({ approvalOn: m.querySelector('#ap-on').checked,
+                         approvalMin: Number(m.querySelector('#ap-min').value||0) });
+    m.remove(); toast('保存しました'); if(S.view==='docs') renderDocs();
+  };
+}
+
+/* ============================================================
+   全画面横断のキーワード検索（A-8）
+   ─────────────────────────────────────────────
+   上のバーの検索窓から、ノート・書類・議事録・取引先をまとめて探す。
+   ============================================================ */
+let gpop=null;
+function closeGpop(){ if(gpop){ gpop.remove(); gpop=null; } }
+function searchVendors(q){
+  const keys=q.toLowerCase().split(/\s+/).filter(Boolean);
+  if(!keys.length) return [];
+  return S.vendors.filter(v=>{
+    const hay=`${v.name||''} ${v.kana||''} ${v.contact||''} ${v.memo||''} ${v.bankName||''}`.toLowerCase();
+    return keys.every(k=>hay.includes(k));
+  }).map(v=>({kind:'vendor', id:v.id, title:v.name||'(名称未設定)', sub:payTermsLabel(v), at:''}));
+}
+function openGlobal(kind, id){
+  if(kind==='vendor'){ go('vendors'); openVendor(id); return; }
+  openByKind(kind, id);
+}
+function drawGpop(q){
+  closeGpop();
+  const rows = [...searchVendors(q), ...globalSearch(q)];
+  const p=el('div','gpop');
+  if(!rows.length){
+    p.appendChild(el('div','gh','見つかりませんでした'));
+  }else{
+    p.appendChild(el('div','gh',`${rows.length}件（Enter で一覧に出します）`));
+    rows.slice(0,25).forEach(r=>{
+      const it=el('div','grow');
+      it.innerHTML=`<span class="pill t">${esc(GKIND[r.kind]||'')}</span>
+        <b>${esc(r.title)}</b><span class="s">${esc(r.sub||'')}</span><span class="d">${esc(r.at||'')}</span>`;
+      it.onclick=()=>{ closeGpop(); if(r.kind!=='vendor') pushRecent(r.kind, r.id, r.title, r.sub); openGlobal(r.kind, r.id); };
+      p.appendChild(it);
+    });
+    if(rows.length>25){
+      const more=el('div','gmore',`すべて見る（${rows.length}件）`);
+      more.onclick=()=>{ closeGpop(); S.homeQ=q; go('home'); };
+      p.appendChild(more);
+    }
+  }
+  p.onclick=e=>e.stopPropagation();
+  $('#gsearch').appendChild(p);
+  gpop=p;
+}
+const GKIND = {note:'ノート', doc:'書類', minute:'議事録', vendor:'取引先'};
+function initGlobalSearch(){
+  const i=$('#gq'); if(!i) return;
+  let t=null;
+  i.oninput=()=>{ clearTimeout(t); t=setTimeout(()=>{
+    const q=i.value.trim();
+    if(q.length<1) return closeGpop();
+    drawGpop(q);
+  }, 220); };
+  i.onkeydown=e=>{
+    if(e.key==='Escape'){ i.value=''; closeGpop(); i.blur(); }
+    if(e.key==='Enter'){ const q=i.value.trim(); if(!q) return; closeGpop(); S.homeQ=q; go('home'); }
+  };
+  i.onclick=e=>e.stopPropagation();
+  document.addEventListener('keydown', e=>{
+    if(e.key==='/' && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)
+       && !document.activeElement.isContentEditable){ e.preventDefault(); i.focus(); }
+  });
+  document.addEventListener('click', ()=>closeGpop());
 }
 
 /* ============================================================
@@ -2936,6 +4588,30 @@ async function buildNotifications(){
       body: `${d.vendor||''}　${yen(d.amount)}　期日 ${d.dueAt}`,
       link:{view:'docs', id:d.id}, createdAt: d.dueAt+'T09:00:00.000Z' });
   });
+
+  // 2-b) 請求書が届いていない（定期支払いの予定日超過）
+  missingInvoices().forEach(d=>{
+    const id = `miss_${d.id}`;
+    if(dm.includes(id)) return;
+    const late = daysBetween(d.issuedAt, today());
+    if(late < 0) return;
+    out.push({ id, kind:'due', read:false, stored:false,
+      title: `請求書が届いていません（予定日から ${late}日）`,
+      body: `${d.vendor||''}　${yen(d.amount)}　${d.period||''}`,
+      link:{view:'docs', id:d.id}, createdAt: (d.issuedAt||today())+'T09:00:00.000Z' });
+  });
+
+  // 2-c) 自分あての承認待ち
+  if(isManager()){
+    S.docs.filter(d=>d.status==='approval').forEach(d=>{
+      const id = `apv_${d.id}`;
+      if(dm.includes(id)) return;
+      out.push({ id, kind:'todo', read:false, stored:false,
+        title:'承認をお願いします',
+        body: `${d.vendor||''}　${yen(d.amount)}　${d.store||''}`,
+        link:{view:'docs', id:d.id}, createdAt: d.checkedAt || nowISO() });
+    });
+  }
 
   // 3) 自分のToDo期限
   allTodos().filter(t=>!t.done && (t.assignee===ME.name||t.assignee===ME.email) && t.due).forEach(t=>{

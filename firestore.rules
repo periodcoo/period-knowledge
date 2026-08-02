@@ -1,8 +1,22 @@
 rules_version = '2';
 
-// Period. ナレッジ — Firestore セキュリティルール
-// members コレクションに「メールアドレスをドキュメントIDとして」登録された人だけが読み書きできる。
-// まだ誰も登録されていない状態のときだけ、最初にログインした人が自分を登録できる（初期セットアップ用）。
+// Period.stock — Firestore セキュリティルール
+//
+// 考え方は今までと同じ：members コレクションに「メールアドレスをドキュメントIDとして」
+// 登録された人だけが読み書きできる。名簿が空のときだけ、最初にログインした人が
+// 自分を登録できる（初期セットアップ用）。
+//
+// 今回の追加ぶん
+//   documents      請求書・納品書の台帳
+//   minutes        議事録
+//   comments       ノート／書類／議事録へのコメント
+//   notifications  通知（自分あてのものしか読めない）
+//
+// 2026年8月 第2弾の追加ぶん
+//   vendors        取引先マスタ（支払サイト・振込先・担当者）
+//   recurring      定期支払いのルール
+//   settings       全体設定（承認フローのON/OFFなど）
+//   history        変更履歴。あとから書き換えられないよう、作成だけ許して更新と削除は禁止する
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -16,20 +30,88 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/members/$(request.auth.token.email));
     }
 
-    // メンバー名簿
+    function me() { return request.auth.token.email; }
+
+    // members/{メール} の role を見る（無ければ member 扱い）
+    function myRole() {
+      return isMember()
+        ? (get(/databases/$(database)/documents/members/$(me())).data.get('role', 'member'))
+        : 'member';
+    }
+
+    // ---------- メンバー名簿 ----------
     match /members/{email} {
       // 名簿は本人確認のため、ログイン済みなら読める
       allow read: if signedIn();
       // 追加・変更はメンバーのみ。ただし名簿が空のときは最初の1人が自分を登録できる
-      allow write: if isMember() || (signedIn() && email == request.auth.token.email);
+      allow write: if isMember() || (signedIn() && email == me());
     }
 
-    // フォルダ・ノート・インデックス・メタ情報
+    // ---------- ナレッジ（これまでどおり） ----------
     match /folders/{id}      { allow read, write: if isMember(); }
     match /notes/{id}        { allow read, write: if isMember(); }
     match /indexShards/{id}  { allow read, write: if isMember(); }
     match /corpusShards/{id} { allow read, write: if isMember(); }
     match /meta/{id}         { allow read, write: if isMember(); }
+
+    // ---------- 請求書・納品書の台帳 ----------
+    match /documents/{id} { allow read, write: if isMember(); }
+    // 添付ファイルの実体（写真・PDFを圧縮してここに入れる。1件1MBまで）
+    match /docFiles/{id}  { allow read, write: if isMember(); }
+
+    // ---------- Stockから引き継いだ添付ファイル ----------
+    // attFiles にファイル情報、attChunks に中身（900KBずつに分割）
+    match /attFiles/{id}  { allow read, write: if isMember(); }
+    match /attChunks/{id} { allow read, write: if isMember(); }
+
+    // ---------- 議事録 ----------
+    match /minutes/{id}   { allow read, write: if isMember(); }
+
+    // ---------- 整理の履歴（取り消し用） ----------
+    match /cleanupLog/{id} { allow read, write: if isMember(); }
+
+    // ---------- 取引先マスタ ----------
+    match /vendors/{id}   { allow read, write: if isMember(); }
+
+    // ---------- 定期支払いのルール ----------
+    match /recurring/{id} { allow read, write: if isMember(); }
+
+    // ---------- 全体設定（承認フローなど） ----------
+    // 読むのは全員。変えられるのは経理・マネージャー・管理者だけ。
+    match /settings/{id} {
+      allow read:  if isMember();
+      allow write: if isMember() && myRole() in ['accounting','manager','admin'];
+    }
+
+    // ---------- 変更履歴 ----------
+    // あとから書き換えられたら履歴の意味がないので、作成だけ許す。
+    // 自分の名前で、自分が実際に操作したものしか残せない。
+    match /history/{id} {
+      allow read:   if isMember();
+      allow create: if isMember()
+                    && request.resource.data.byEmail == me()
+                    && request.resource.data.keys().hasAll(['target','targetId','by','byEmail','at']);
+      allow update, delete: if false;
+    }
+
+    // ---------- コメント ----------
+    // メンバーなら読める・書ける。ただし書き換えと削除は書いた本人だけ。
+    match /comments/{id} {
+      allow read:   if isMember();
+      allow create: if isMember() && request.resource.data.authorEmail == me();
+      allow update, delete: if isMember() && resource.data.authorEmail == me();
+    }
+
+    // ---------- 通知 ----------
+    // 自分あての通知だけ読める（一覧取得も to == 自分 の条件が必須になる）。
+    // 作成は誰でもできる（他人にメンションやToDoを飛ばすため）。
+    // 既読にできるのは受け取った本人だけ。
+    match /notifications/{id} {
+      allow read:   if isMember() && resource.data.to == me();
+      allow create: if isMember() && request.resource.data.keys().hasAll(['to','kind','title']);
+      allow update: if isMember() && resource.data.to == me();
+      allow delete: if isMember() && resource.data.to == me();
+    }
 
     // 上記以外はすべて拒否
     match /{document=**} { allow read, write: if false; }
