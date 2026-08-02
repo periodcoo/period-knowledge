@@ -467,8 +467,6 @@ iframe.fprev.pdf{height:420px}
 .fold:hover .fedit{display:block}
 .fold .fedit:hover{background:var(--navy3);color:#fff}
 .fold:hover .n{opacity:0}
-.sec-h .add{margin-left:6px;font-size:14px;color:#6f7a92;line-height:1;padding:0 4px;border-radius:3px}
-.sec-h .add:hover{color:#fff;background:var(--navy3)}
 .sbfoot{padding:12px 16px 26px}
 .sbfoot button{width:100%;border:1px dashed var(--line2);border-radius:5px;padding:9px 0;
   font-size:12px;color:#9aa4b8}
@@ -704,7 +702,7 @@ const isManager    = () => ['manager','admin'].includes(roleOf());
 
 const S = {
   view:'home',
-  // ストック
+  // ナレッジ
   folders:[], notes:[], corpus:null, mode:'work', folderId:null, noteId:null, open:{}, results:null, editing:false,
   // 共通
   members:[], myRole:'member', notifs:[], notifOpen:false, attIds:new Set(), homeQ:'', noteQ:'',
@@ -1294,11 +1292,8 @@ function renderSidebar(){
     const wrap = el('div','sec');
     const open = S.open[sec] === true;   // はじめは閉じておく
     const h = el('div','sec-h',
-      `<span class="arrow${open?' open':''}">&#9654;</span><span>${esc(sec)}</span>`);
-    const add = el('button','add','＋'); add.title=`${sec} にフォルダを追加`;
-    add.onclick=e=>{ e.stopPropagation(); openFolder(null, sec); };
-    h.appendChild(add);
-    h.appendChild(el('span','cnt',String(total)));
+      `<span class="arrow${open?' open':''}">&#9654;</span><span>${esc(sec)}</span>
+       <span class="cnt">${total}</span>`);
     h.onclick=()=>{ S.open[sec]=!open; renderSidebar(); };
     wrap.appendChild(h);
     if(open){
@@ -1330,20 +1325,27 @@ function openFolder(id, presetSection){
   const f = isNew ? null : S.folders.find(x=>x.id===id);
   if(!isNew && !f) return;
   const used = S.notes.filter(n=>String(n.folderId)===String(id)).length;
-  const sections = [...new Set(S.folders.map(x=>x.section).filter(Boolean))].sort();
+  const sections = [...new Set(S.folders.map(x=>x.section).filter(Boolean))]
+    .sort((a,b)=>a.localeCompare(b,'ja'));
+  const cur = isNew ? (presetSection || sections[0] || 'その他') : f.section;
 
   const m=el('div','modal');
   m.innerHTML=`<div class="box" style="width:460px">
     <h3>${isNew?'フォルダを追加':'フォルダの設定'}</h3>
     <p>${isNew
-      ? 'ノートを入れる場所を作ります。区分は左のサイドバーの見出し（①株式会社Period. など）です。'
+      ? 'ノートを入れる場所を作ります。区分は左のサイドバーの見出しです。'
       : `名前を変えても、中のノート ${used}件 はそのまま残ります。`}</p>
     <div class="fgrid">
       <label>フォルダ名</label><input id="f-name" value="${esc(isNew?'':f.name)}" placeholder="例：2026年 契約書">
-      <label>区分</label><input id="f-sec" list="f-secs" value="${esc(isNew?(presetSection||sections[0]||'その他'):f.section)}" placeholder="①株式会社Period.">
+      <label>区分</label>
+      <select id="f-sec">
+        ${sections.map(s=>`<option value="${esc(s)}"${s===cur?' selected':''}>${esc(s)}</option>`).join('')}
+        <option value="__new">＋ 新しい区分を作る…</option>
+      </select>
     </div>
-    <datalist id="f-secs">${sections.map(s=>`<option value="${esc(s)}">`).join('')}</datalist>
-    <div class="help">区分は新しい名前を打てば、その見出しごと新しく作られます。</div>
+    <div class="fgrid" id="f-newsec" style="display:none;margin-top:9px">
+      <label>新しい区分名</label><input id="f-newsec-v" placeholder="例：⑧新規事業">
+    </div>
     <div class="row">
       ${(!isNew && used===0)?'<button id="f-del" style="color:var(--danger);margin-right:auto">削除</button>':''}
       <button id="f-c">キャンセル</button>
@@ -1355,6 +1357,16 @@ function openFolder(id, presetSection){
   const $$ = s => m.querySelector(s);
   $$('#f-c').onclick=()=>m.remove();
   $$('#f-name').focus();
+
+  const sel=$$('#f-sec'), newRow=$$('#f-newsec');
+  sel.onchange=()=>{
+    const isNewSec = sel.value==='__new';
+    newRow.style.display = isNewSec ? 'grid' : 'none';
+    if(isNewSec) $$('#f-newsec-v').focus();
+  };
+  const pickedSection = () => sel.value==='__new'
+    ? ($$('#f-newsec-v').value.trim() || '')
+    : sel.value;
 
   const del = $$('#f-del');
   if(del) del.onclick=async()=>{
@@ -1368,10 +1380,11 @@ function openFolder(id, presetSection){
 
   $$('#f-s').onclick=async()=>{
     const name=$$('#f-name').value.trim();
-    const sec =$$('#f-sec').value.trim() || 'その他';
+    const sec =pickedSection();
     if(!name) return alert('フォルダ名を入れてください。');
-    const dup = S.folders.find(x=>x.name===name && x.section===sec && x.id!==id);
-    if(dup) return alert('同じ区分に同じ名前のフォルダがすでにあります。');
+    if(!sec)  return alert('新しい区分の名前を入れてください。');
+    const dupF = S.folders.find(x=>x.name===name && x.section===sec && x.id!==id);
+    if(dupF) return alert('同じ区分に同じ名前のフォルダがすでにあります。');
     const btn=$$('#f-s'); btn.disabled=true;
     if(isNew){
       const nf={ id:'f'+Date.now(), name, section:sec,
