@@ -5303,4 +5303,271 @@ function attachMentionPicker(ta, host){
     pop.innerHTML='';
     cands.forEach((x,i)=>{
       const d=el('div',i===sel?'sel':'',esc(x.name||x.email));
-      d.onmousedown=e=>{ e.preventDefau
+      d.onmousedown=e=>{ e.preventDefault(); insert(x.name||x.email); };
+      pop.appendChild(d);
+    });
+  });
+  ta.addEventListener('keydown', e=>{
+    if(!pop) return;
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+      e.preventDefault(); sel=(sel+(e.key==='ArrowDown'?1:-1)+cands.length)%cands.length;
+      [...pop.children].forEach((c,i)=>c.className=i===sel?'sel':'');
+    }else if(e.key==='Enter'&&!e.metaKey&&!e.ctrlKey){ e.preventDefault(); insert(cands[sel].name||cands[sel].email); }
+    else if(e.key==='Escape'){ closePop(); }
+  });
+  ta.addEventListener('blur', ()=>setTimeout(closePop,150));
+}
+
+/* ============================================================
+   通知
+   ============================================================ */
+async function pushNotif(toEmail, kind, title, body, link){
+  const id='nt'+Date.now()+Math.random().toString(36).slice(2,6);
+  try{
+    await setDoc(doc(db,'notifications',id), { id, to:toEmail, kind, title, body:body||'',
+      link:link||null, from:ME.name, read:false, createdAt:nowISO() });
+  }catch(e){}
+}
+const DISMISS_KEY='period_stock_dismissed';
+const dismissed = () => { try{ return JSON.parse(localStorage.getItem(DISMISS_KEY)||'[]'); }catch(e){ return []; } };
+const dismiss = id => { const a=dismissed(); if(!a.includes(id)){ a.push(id); localStorage.setItem(DISMISS_KEY, JSON.stringify(a.slice(-400))); } };
+
+async function buildNotifications(){
+  const out=[];
+  const dm=dismissed();
+
+  // 1) 保存されている通知（メンション・ToDo割当）
+  try{
+    const s = await getDocs(query(collection(db,'notifications'), where('to','==',ME.email), limit(120)));
+    s.docs.map(d=>({id:d.id,...d.data()}))
+      .sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''))
+      .slice(0,60)
+      .forEach(n=>out.push({...n, stored:true}));
+  }catch(e){}
+
+  // 2) 支払期日アラート（端末側で毎回計算）
+  S.docs.filter(d=>d.type==='請求書' && d.status==='unpaid' && d.dueAt).forEach(d=>{
+    const left = daysBetween(today(), d.dueAt);
+    if(left > 7) return;
+    const id = `due_${d.id}_${d.dueAt}`;
+    if(dm.includes(id)) return;
+    out.push({ id, kind:'due', read:false, stored:false,
+      title: left<0 ? `支払期日を ${-left}日 過ぎています` : (left===0 ? '本日が支払期日です' : `あと${left}日で支払期日`),
+      body: `${d.vendor||''}　${yen(d.amount)}　期日 ${d.dueAt}`,
+      link:{view:'docs', id:d.id}, createdAt: d.dueAt+'T09:00:00.000Z' });
+  });
+
+  // 2-b) 請求書が届いていない（定期支払いの予定日超過）
+  missingInvoices().forEach(d=>{
+    const id = `miss_${d.id}`;
+    if(dm.includes(id)) return;
+    const late = daysBetween(d.issuedAt, today());
+    if(late < 0) return;
+    out.push({ id, kind:'due', read:false, stored:false,
+      title: `請求書が届いていません（予定日から ${late}日）`,
+      body: `${d.vendor||''}　${yen(d.amount)}　${d.period||''}`,
+      link:{view:'docs', id:d.id}, createdAt: (d.issuedAt||today())+'T09:00:00.000Z' });
+  });
+
+  // 2-b-2) 二重払いのおそれ（経理・管理者だけ）
+  if(isAccounting()){
+    openDuplicates().forEach(g=>{
+      const id = `dup_${g.key}`;
+      if(dm.includes(id)) return;
+      out.push({ id, kind:'due', read:false, stored:false,
+        title:'二重払いのおそれ',
+        body: `${g.vendor}　${g.period}　${yen(g.amount)} が ${g.rows.length}件`,
+        link:{view:'docs', id:g.rows[0].id}, createdAt: nowISO() });
+    });
+  }
+
+  // 2-c) 自分あての承認待ち
+  if(isManager()){
+    S.docs.filter(d=>d.status==='approval').forEach(d=>{
+      const id = `apv_${d.id}`;
+      if(dm.includes(id)) return;
+      out.push({ id, kind:'todo', read:false, stored:false,
+        title:'承認をお願いします',
+        body: `${d.vendor||''}　${yen(d.amount)}　${d.store||''}`,
+        link:{view:'docs', id:d.id}, createdAt: d.checkedAt || nowISO() });
+    });
+  }
+
+  // 3) 自分のToDo期限
+  allTodos().filter(t=>!t.done && (t.assignee===ME.name||t.assignee===ME.email) && t.due).forEach(t=>{
+    const left = daysBetween(today(), t.due);
+    if(left > 3) return;
+    const id = `todo_${t.minuteId}_${t.idx}_${t.due}`;
+    if(dm.includes(id)) return;
+    out.push({ id, kind:'todo', read:false, stored:false,
+      title: left<0 ? `ToDoの期限を ${-left}日 過ぎています` : (left===0?'本日が期限のToDo':`あと${left}日で期限のToDo`),
+      body: `${t.text} — ${t.minuteTitle}`,
+      link:{view:'minutes', id:t.minuteId}, createdAt: t.due+'T09:00:00.000Z' });
+  });
+
+  S.notifs = out.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  renderBell();
+}
+function renderBell(){
+  const un = S.notifs.filter(n=>!n.read).length;
+  const d=$('#bdot');
+  if(un){ d.style.display='block'; d.textContent = un>99?'99+':un; }
+  else d.style.display='none';
+}
+function notifRow(n){
+  const ic = {due:'due', mention:'men', todo:'todo'}[n.kind] || '';
+  const r=el('div','nrow'+(n.read?'':' unread'));
+  const glyph = {due:'¥', mention:'@', todo:'✓'}[n.kind] || '•';
+  r.innerHTML=`<div class="ic ${ic}">${glyph}</div>
+    <div class="tx"><b>${esc(n.title)}</b><span>${esc(n.body||'')}</span></div>
+    <div class="tm">${fmt(n.createdAt)}</div>`;
+  r.onclick=async()=>{
+    await markRead(n);
+    closeNotifPanel();
+    if(n.link){
+      if(n.link.view==='docs'){ go('docs'); openDoc(n.link.id); }
+      else if(n.link.view==='minutes'){ go('minutes'); openMinute(n.link.id); }
+      else if(n.link.view==='knowledge'){ go('knowledge'); S.noteId=n.link.id; S.results=null; renderList(); renderDetail(); }
+    }
+  };
+  return r;
+}
+async function markRead(n){
+  if(n.read) return;
+  n.read=true;
+  if(n.stored){ try{ await setDoc(doc(db,'notifications',n.id),{read:true},{merge:true}); }catch(e){} }
+  else dismiss(n.id);
+  renderBell();
+}
+let notifPanel=null;
+function closeNotifPanel(){ if(notifPanel){ notifPanel.remove(); notifPanel=null; } }
+$('#bell').onclick = (e)=>{
+  e.stopPropagation();
+  if(notifPanel) return closeNotifPanel();
+  const p=el('div','notif-panel');
+  const h=el('h4',null,'通知');
+  const all=el('button',null,'すべて既読にする');
+  all.onclick=async(ev)=>{ ev.stopPropagation();
+    for(const n of S.notifs) await markRead(n);
+    closeNotifPanel(); };
+  h.appendChild(all); p.appendChild(h);
+  if(!S.notifs.length) p.appendChild(el('div','empty','新しい通知はありません'));
+  else S.notifs.slice(0,40).forEach(n=>p.appendChild(notifRow(n)));
+  p.onclick=e=>e.stopPropagation();
+  document.querySelector('.topbar').appendChild(p);
+  notifPanel=p;
+};
+document.addEventListener('click', ()=>closeNotifPanel());
+
+/* ============================================================
+   初回インポート（ナレッジ）
+   ============================================================ */
+function offerImport(){
+  $('#sidebar').innerHTML=''; $('#list').innerHTML='';
+  $('#detail').innerHTML = `<div class="empty" style="padding-top:120px">
+    データがまだ入っていません。<br>
+    移行用ファイル（migration_data_v2.json.gz）を選んでください。<br><br>
+    <input type="file" id="impfile" accept=".gz,.json"
+      style="font-size:13px;padding:10px;border:1px solid var(--line);border-radius:4px;background:#fff">
+  </div>`;
+  $('#impfile').onchange = e => { const f=e.target.files[0]; if(f) runImport(f); };
+}
+async function runImport(file){
+  const m=el('div','modal');
+  m.innerHTML=`<div class="box"><h3>データを取り込んでいます</h3>
+    <p>Stockから抽出したノートを Firestore に書き込みます。数分かかります。途中で閉じないでください。</p>
+    <div class="bar"><i id="pb"></i></div><div class="log" id="lg"></div>
+    <div class="row"><button id="cl" class="primary" style="display:none">閉じる</button></div></div>`;
+  document.body.appendChild(m);
+  const log = t => { const g=$('#lg'); g.textContent += t+'\n'; g.scrollTop=g.scrollHeight; };
+  const prog = p => $('#pb').style.width = (p*100).toFixed(1)+'%';
+  try{
+    await setDoc(doc(db,'members',ME.email),{name:ME.name, role:'admin'});
+    log(`管理者として登録しました: ${ME.email}`);
+    log('ファイルを展開しています…');
+    let text;
+    if(file.name.endsWith('.gz')){
+      text = await new Response(file.stream().pipeThrough(new DecompressionStream('gzip'))).text();
+    }else{ text = await file.text(); }
+    const data = JSON.parse(text);
+    log(`フォルダ ${data.folders.length} 件 / ノート ${data.notes.length} 件`);
+    let b = writeBatch(db), c=0;
+    for(const f of data.folders){
+      b.set(doc(db,'folders',String(f.id)), {name:f.name, section:f.section, archived:false});
+      if(++c%400===0){ await b.commit(); b=writeBatch(db); }
+    }
+    await b.commit();
+    log('フォルダを書き込みました');
+    b = writeBatch(db); c=0;
+    const idx=[];
+    for(let i=0;i<data.notes.length;i++){
+      const n=data.notes[i];
+      b.set(doc(db,'notes',String(n.id)), {
+        folderId:String(n.folderId), folder:n.folder, section:n.section, title:n.title, body:n.body,
+        preview:n.preview, createdAt:n.createdAt, updatedAt:n.updatedAt,
+        author:n.author, editor:n.editor, archived:n.archived, daily:n.daily,
+        tags:n.tags||[], attachments:n.attachments||[]
+      });
+      idx.push({id:String(n.id), folderId:String(n.folderId), folder:n.folder, title:n.title,
+        preview:n.preview, updatedAt:n.updatedAt, author:n.author,
+        archived:n.archived, daily:n.daily, att:(n.attachments||[]).length});
+      if(++c%400===0){ await b.commit(); b=writeBatch(db);
+        prog(i/data.notes.length*0.85); log(`ノート ${i+1} / ${data.notes.length}`); }
+    }
+    await b.commit();
+    log('ノートを書き込みました');
+    log('一覧インデックスを作成しています…');
+    const shards=[]; let cur=[], size=0;
+    for(const r of idx){
+      const s=JSON.stringify(r).length;
+      if(size+s > 900000){ shards.push(cur); cur=[]; size=0; }
+      cur.push(r); size+=s;
+    }
+    if(cur.length) shards.push(cur);
+    b=writeBatch(db);
+    for(let i=0;i<shards.length;i++){
+      const gz = await gzipStr(JSON.stringify(shards[i]));
+      if(gz.length > 950000) throw new Error('インデックスの分割サイズが大きすぎます');
+      b.set(doc(db,'indexShards','s'+String(i).padStart(3,'0')), {n:i, gz:Bytes.fromUint8Array(gz)});
+      if((i+1)%10===0){ await b.commit(); b=writeBatch(db); }
+      prog(0.85 + (i/shards.length)*0.14);
+    }
+    await b.commit();
+    const ver=Date.now();
+    await setDoc(doc(db,'meta','index'),{version:ver, count:idx.length, builtAt:nowISO()});
+    log('本文検索データを作成しています…');
+    const enc=new TextEncoder();
+    const cshards=[]; let cc={}, cbytes=0;
+    for(const n of data.notes){
+      if(!n.text) continue;
+      const bytes = enc.encode(n.text).length;
+      if(cbytes + bytes > 2000000){ cshards.push(cc); cc={}; cbytes=0; }
+      cc[String(n.id)] = n.text; cbytes += bytes;
+    }
+    if(Object.keys(cc).length) cshards.push(cc);
+    b=writeBatch(db);
+    for(let i=0;i<cshards.length;i++){
+      const gz = await gzipStr(JSON.stringify(cshards[i]));
+      if(gz.length > 950000) throw new Error('本文データの分割サイズが大きすぎます');
+      b.set(doc(db,'corpusShards','c'+String(i).padStart(3,'0')), {n:i, gz:Bytes.fromUint8Array(gz)});
+      if((i+1)%5===0){ await b.commit(); b=writeBatch(db); }
+    }
+    await b.commit();
+    await setDoc(doc(db,'meta','corpus'),{version:ver, shards:cshards.length});
+    log(`本文検索データ ${cshards.length} シャード`);
+    prog(1);
+    log(`完了しました。インデックス ${shards.length} シャード`);
+    $('#cl').style.display='block';
+    $('#cl').onclick=()=>location.reload();
+  }catch(e){
+    log('エラー: '+e.message);
+    $('#cl').style.display='block';
+    $('#cl').onclick=()=>m.remove();
+  }
+}
+
+// 動作確認用（実害なし）
+try{ window.__T = { S, go, renderDocs, renderMinutes, globalSearch, recents, openDoc, openMinute }; }catch(e){}
+</script>
+</body>
+</html>
