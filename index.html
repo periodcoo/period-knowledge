@@ -910,23 +910,30 @@ async function onGoogleCredential(resp){
   try{ await signInWithCredential(auth, GoogleAuthProvider.credential(resp.credential)); }
   catch(e){ const msg = friendlyAuthError(e); if(msg) renderLogin(msg); }
 }
-// 通常ルート：Google公式のボタンをその場に描画する（GISがFirebaseの認証ドメインを経由しないので安定する）
+function renderPopupButton(box){
+  box.innerHTML='';
+  const b = el('button','go','Googleでログイン');
+  b.onclick = async () => {
+    try{ await signInWithPopup(auth, new GoogleAuthProvider()); }
+    catch(e){ const msg=friendlyAuthError(e); if(msg) renderLogin(msg); }
+  };
+  box.appendChild(b);
+}
+// GIS（Googleの直接ログイン）を使うには、Google Cloud Console →
+// このプロジェクトの OAuth 2.0 クライアントID → 承認済みの JavaScript 生成元 に
+// https://periodcoo.github.io を追加する必要がある（未設定だと origin_mismatch で失敗する）。
+// 追加が済むまでは、これまでどおりの signInWithPopup を使う。
+const GIS_ORIGIN_AUTHORIZED = false;
 async function renderGoogleButton(){
   const box = $('#gin'); if(!box) return;
+  if(!GIS_ORIGIN_AUTHORIZED) return renderPopupButton(box);
   try{
     await waitForGis();
     google.accounts.id.initialize({ client_id: GOOGLE_WEB_CLIENT_ID, callback: onGoogleCredential });
     box.innerHTML='';
     google.accounts.id.renderButton(box, {theme:'filled_blue', size:'large', text:'signin_with', shape:'pill', locale:'ja', width:280});
   }catch(e){
-    // 予備ルート：GISが読み込めない環境向けに、昔ながらのポップアップ方式を出す
-    box.innerHTML='';
-    const b = el('button','go','Googleでログイン');
-    b.onclick = async () => {
-      try{ await signInWithPopup(auth, new GoogleAuthProvider()); }
-      catch(e2){ const msg=friendlyAuthError(e2); if(msg) renderLogin(msg); }
-    };
-    box.appendChild(b);
+    renderPopupButton(box); // GISが読み込めない環境向けの予備ルート
   }
 }
 
