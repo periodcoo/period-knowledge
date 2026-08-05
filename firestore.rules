@@ -48,7 +48,16 @@ service cloud.firestore {
     }
 
     // ---------- ナレッジ（これまでどおり） ----------
-    match /folders/{id}      { allow read, write: if isMember(); }
+    // 参加者(participants)が指定されているフォルダは、そのメンバーだけが読める。
+    // 指定が無い（従来どおりの）フォルダは全メンバーが読める。
+    match /folders/{id} {
+      allow read: if isMember() && (
+        !('participants' in resource.data) ||
+        resource.data.participants.size() == 0 ||
+        me() in resource.data.participants
+      );
+      allow write: if isMember();
+    }
     match /notes/{id}        { allow read, write: if isMember(); }
     match /indexShards/{id}  { allow read, write: if isMember(); }
     match /corpusShards/{id} { allow read, write: if isMember(); }
