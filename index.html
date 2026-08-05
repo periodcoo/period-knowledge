@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Period.stock</title>
+<!-- Googleログイン用。Firebaseの signInWithPopup/signInWithRedirect は
+     GitHub Pages（Firebase Hosting以外）だとSafari等でストレージが分離され失敗するため、
+     Google Identity Services で直接サインインし、そのIDトークンをFirebaseに渡す方式にしている。
+     詳細: https://firebase.google.com/docs/auth/web/redirect-best-practices の Option 5 -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
   --navy:#141b2d; --navy2:#1e2740; --navy3:#28324e; --line:#e3e6ec; --line2:#2a3450;
@@ -705,7 +710,7 @@ table.rept td.z{color:#c8ced8}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, where,
   orderBy, limit, writeBatch, Bytes }
@@ -806,14 +811,8 @@ async function boot(){
   try{ fb = initializeApp(cfg); db = getFirestore(fb); auth = getAuth(fb); }
   catch(e){ return renderSetup('Firebaseの初期化に失敗しました: '+e.message); }
 
-  // スマホでは signInWithRedirect でログインしているので、
-  // Googleから戻ってきた直後にここで結果（失敗した場合はエラー）を受け取る
-  let redirectErr = null;
-  try{ await getRedirectResult(auth); }
-  catch(e){ redirectErr = friendlyAuthError(e); }
-
   onAuthStateChanged(auth, async u => {
-    if(!u) return renderLogin(redirectErr || undefined);
+    if(!u) return renderLogin();
     const ok = await allowed(u.email);
     if(!ok){ await signOut(auth);
       return renderLogin(`${u.email} はまだ許可されていません。管理者に members への追加を依頼してください。`); }
@@ -862,18 +861,24 @@ function renderSetup(err){
 }
 
 /* ============================================================
-   ログイン周りの端末判定・エラー文言
+   ログイン
    ─────────────────────────────────────────────
-   スマホのSafari（特にiOS）はポップアップとFirebaseの認証ドメイン
-   （*.firebaseapp.com）の間でストレージが分離され、signInWithPopup が
-   「Unable to process request due to missing initial state」で失敗しがち。
-   スマホでは同じタブの中で完結する signInWithRedirect を使うことで避ける。
+   GitHub Pages（Firebase Hosting以外）で Firebase の signInWithPopup /
+   signInWithRedirect を使うと、認証ドメイン（*.firebaseapp.com）との間で
+   SafariなどのITP（ストレージ分離）に引っかかり、
+   「Unable to process request due to missing initial state」等で
+   失敗したり、画面が固まったように進まなくなったりする。
+   （Firebase公式: https://firebase.google.com/docs/auth/web/redirect-best-practices ）
+   このアプリはFirebase Hostingを使っていない（authDomainを合わせられない）ので、
+   同ドキュメントの Option 5 にしたがい、Googleへのサインイン自体は
+   Google Identity Services（GIS。Firebaseの認証ドメインを経由しない）で行い、
+   取れたIDトークンだけを signInWithCredential でFirebaseに渡す。
+   スクリプトが読み込めない場合だけ、従来の signInWithPopup にフォールバックする。
    LINEなどのアプリ内ブラウザは、Google側がそもそもログインを拒否するので
    （disallowed_useragent）、先に検知して案内を出す。
    ============================================================ */
-function isMobileDevice(){
-  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent||'');
-}
+const GOOGLE_WEB_CLIENT_ID = '221343551074-6r2rnrf6g88aoqt3me4d7ttvhqibcrc0.apps.googleusercontent.com';
+
 function isInAppBrowser(){
   const ua = navigator.userAgent||'';
   return /Line\//i.test(ua) || /FBAN|FBAV/i.test(ua) || /Instagram/i.test(ua) ||
@@ -886,8 +891,43 @@ function friendlyAuthError(e){
   if(code==='auth/unauthorized-domain') return 'このサイトのドメインがFirebase側で許可されていません。管理者に連絡してください。';
   if(code==='auth/network-request-failed') return '通信が不安定なようです。電波の良いところでもう一度お試しください。';
   if(/missing initial state/i.test(msg))
-    return 'ログイン処理がうまく引き継げませんでした。もう一度「Googleでログイン」を押してください。\n直らない場合は、Safariの「プライベートブラウズ」がオフになっているか、設定アプリ→Safari→「サイト超えトラッキングを防ぐ」を一時的にオフにして試してください。';
+    return 'ログイン処理がうまく引き継げませんでした。もう一度お試しください。';
   return 'ログインに失敗しました: '+msg;
+}
+// GISのスクリプトはasync読み込みなので、ボタンを出す時点でまだ来ていないことがある
+function waitForGis(timeoutMs){
+  return new Promise((resolve, reject)=>{
+    const t0 = Date.now();
+    (function poll(){
+      if(window.google && google.accounts && google.accounts.id) return resolve();
+      if(Date.now()-t0 > (timeoutMs||8000))
+        return reject(new Error('Googleログイン用のスクリプトを読み込めませんでした'));
+      setTimeout(poll, 100);
+    })();
+  });
+}
+async function onGoogleCredential(resp){
+  try{ await signInWithCredential(auth, GoogleAuthProvider.credential(resp.credential)); }
+  catch(e){ const msg = friendlyAuthError(e); if(msg) renderLogin(msg); }
+}
+// 通常ルート：Google公式のボタンをその場に描画する（GISがFirebaseの認証ドメインを経由しないので安定する）
+async function renderGoogleButton(){
+  const box = $('#gin'); if(!box) return;
+  try{
+    await waitForGis();
+    google.accounts.id.initialize({ client_id: GOOGLE_WEB_CLIENT_ID, callback: onGoogleCredential });
+    box.innerHTML='';
+    google.accounts.id.renderButton(box, {theme:'filled_blue', size:'large', text:'signin_with', shape:'pill', locale:'ja', width:280});
+  }catch(e){
+    // 予備ルート：GISが読み込めない環境向けに、昔ながらのポップアップ方式を出す
+    box.innerHTML='';
+    const b = el('button','go','Googleでログイン');
+    b.onclick = async () => {
+      try{ await signInWithPopup(auth, new GoogleAuthProvider()); }
+      catch(e2){ const msg=friendlyAuthError(e2); if(msg) renderLogin(msg); }
+    };
+    box.appendChild(b);
+  }
 }
 
 function renderLogin(err){
@@ -901,21 +941,11 @@ function renderLogin(err){
       ? `<div class="err">LINEなどのアプリ内ブラウザではGoogleログインができません。<br>
           画面右下（または右上）の「…」メニューから「ブラウザで開く」「Safariで開く」を選んで、
           あらためて開き直してください。</div>`
-      : `<button class="go" id="gin">Googleでログイン</button>`}
+      : `<div id="gin" style="display:flex;justify-content:center;min-height:44px;align-items:center;color:#9aa4b8;font-size:12.5px">読み込み中…</div>`}
     ${err?`<div class="err" style="white-space:pre-line">${esc(err)}</div>`:''}
     <div class="note"><button id="reset" style="text-decoration:underline">Firebaseの設定をやり直す</button></div>
   </div>`;
-  if(!inApp){
-    $('#gin').onclick = async () => {
-      try{
-        if(isMobileDevice()) await signInWithRedirect(auth, new GoogleAuthProvider());
-        else await signInWithPopup(auth, new GoogleAuthProvider());
-      }catch(e){
-        const msg = friendlyAuthError(e);
-        if(msg) renderLogin(msg);
-      }
-    };
-  }
+  if(!inApp) renderGoogleButton();
   $('#reset').onclick = () => { localStorage.removeItem(CFG_KEY); localStorage.removeItem(OLD_CFG_KEY); location.reload(); };
 }
 $('#signout').onclick = () => signOut(auth).then(()=>location.reload());
