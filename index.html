@@ -705,7 +705,7 @@ table.rept td.z{color:#c8ced8}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, where,
   orderBy, limit, writeBatch, Bytes }
@@ -806,8 +806,14 @@ async function boot(){
   try{ fb = initializeApp(cfg); db = getFirestore(fb); auth = getAuth(fb); }
   catch(e){ return renderSetup('Firebaseの初期化に失敗しました: '+e.message); }
 
+  // スマホでは signInWithRedirect でログインしているので、
+  // Googleから戻ってきた直後にここで結果（失敗した場合はエラー）を受け取る
+  let redirectErr = null;
+  try{ await getRedirectResult(auth); }
+  catch(e){ redirectErr = friendlyAuthError(e); }
+
   onAuthStateChanged(auth, async u => {
-    if(!u) return renderLogin();
+    if(!u) return renderLogin(redirectErr || undefined);
     const ok = await allowed(u.email);
     if(!ok){ await signOut(auth);
       return renderLogin(`${u.email} はまだ許可されていません。管理者に members への追加を依頼してください。`); }
@@ -855,20 +861,61 @@ function renderSetup(err){
   };
 }
 
+/* ============================================================
+   ログイン周りの端末判定・エラー文言
+   ─────────────────────────────────────────────
+   スマホのSafari（特にiOS）はポップアップとFirebaseの認証ドメイン
+   （*.firebaseapp.com）の間でストレージが分離され、signInWithPopup が
+   「Unable to process request due to missing initial state」で失敗しがち。
+   スマホでは同じタブの中で完結する signInWithRedirect を使うことで避ける。
+   LINEなどのアプリ内ブラウザは、Google側がそもそもログインを拒否するので
+   （disallowed_useragent）、先に検知して案内を出す。
+   ============================================================ */
+function isMobileDevice(){
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent||'');
+}
+function isInAppBrowser(){
+  const ua = navigator.userAgent||'';
+  return /Line\//i.test(ua) || /FBAN|FBAV/i.test(ua) || /Instagram/i.test(ua) ||
+         /Twitter/i.test(ua) || /KAKAOTALK/i.test(ua) || /MicroMessenger/i.test(ua);
+}
+function friendlyAuthError(e){
+  const code = (e && e.code) || '';
+  const msg  = (e && e.message) || '';
+  if(code==='auth/popup-closed-by-user' || code==='auth/cancelled-popup-request') return null; // 自分で閉じただけ
+  if(code==='auth/unauthorized-domain') return 'このサイトのドメインがFirebase側で許可されていません。管理者に連絡してください。';
+  if(code==='auth/network-request-failed') return '通信が不安定なようです。電波の良いところでもう一度お試しください。';
+  if(/missing initial state/i.test(msg))
+    return 'ログイン処理がうまく引き継げませんでした。もう一度「Googleでログイン」を押してください。\n直らない場合は、Safariの「プライベートブラウズ」がオフになっているか、設定アプリ→Safari→「サイト超えトラッキングを防ぐ」を一時的にオフにして試してください。';
+  return 'ログインに失敗しました: '+msg;
+}
+
 function renderLogin(err){
   $('#app').classList.remove('ready');
   const g=$('#gate'); g.style.display='block';
+  const inApp = isInAppBrowser();
   g.innerHTML = `<div class="gate">
     <h1>PERIOD.<span>stock</span></h1>
     <p>社内アカウントでログインしてください。</p>
-    <button class="go" id="gin">Googleでログイン</button>
-    ${err?`<div class="err">${esc(err)}</div>`:''}
+    ${inApp
+      ? `<div class="err">LINEなどのアプリ内ブラウザではGoogleログインができません。<br>
+          画面右下（または右上）の「…」メニューから「ブラウザで開く」「Safariで開く」を選んで、
+          あらためて開き直してください。</div>`
+      : `<button class="go" id="gin">Googleでログイン</button>`}
+    ${err?`<div class="err" style="white-space:pre-line">${esc(err)}</div>`:''}
     <div class="note"><button id="reset" style="text-decoration:underline">Firebaseの設定をやり直す</button></div>
   </div>`;
-  $('#gin').onclick = async () => {
-    try{ await signInWithPopup(auth, new GoogleAuthProvider()); }
-    catch(e){ renderLogin('ログインに失敗しました: '+e.message); }
-  };
+  if(!inApp){
+    $('#gin').onclick = async () => {
+      try{
+        if(isMobileDevice()) await signInWithRedirect(auth, new GoogleAuthProvider());
+        else await signInWithPopup(auth, new GoogleAuthProvider());
+      }catch(e){
+        const msg = friendlyAuthError(e);
+        if(msg) renderLogin(msg);
+      }
+    };
+  }
   $('#reset').onclick = () => { localStorage.removeItem(CFG_KEY); localStorage.removeItem(OLD_CFG_KEY); location.reload(); };
 }
 $('#signout').onclick = () => signOut(auth).then(()=>location.reload());
