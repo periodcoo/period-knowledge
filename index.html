@@ -326,6 +326,15 @@ iframe.fprev.pdf{height:420px}
 .adm button:hover{border-color:var(--accent);background:#fdfcfa}
 .adm button b{display:block;font-size:13px;font-weight:600}
 .adm button span{display:block;font-size:11.5px;color:var(--sub);margin-top:3px;line-height:1.6}
+.mrow{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid #f2f4f7;font-size:12.5px}
+.mrow:last-child{border-bottom:none}
+.mrow .em{flex:1;min-width:0}
+.mrow select{border:1px solid var(--line);border-radius:4px;padding:5px 8px;font-size:12px;background:#fff}
+.mrow button{font-size:11.5px;color:var(--accent);white-space:nowrap}
+.pgrid{max-height:280px;overflow-y:auto;border:1px solid var(--line);border-radius:6px;padding:2px 12px;margin-top:8px}
+.prow{display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #f5f6f8;font-size:12.5px}
+.prow:last-child{border-bottom:none}
+.prow input[type=checkbox]{width:15px;height:15px;flex:none}
 
 .banner{background:#fdf8ec;border:1px solid #ecdcbb;border-radius:6px;padding:14px 18px;margin-top:16px;
   display:flex;align-items:center;gap:14px;flex-wrap:wrap}
@@ -673,7 +682,7 @@ table.rept td.z{color:#c8ced8}
           <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
         <span class="dot" id="bdot" style="display:none">0</span>
       </button>
-      <span id="whoami"></span><button id="admin">管理</button><button id="signout">ログアウト</button>
+      <span id="whoami"></span><button id="members-btn">メンバー</button><button id="admin">管理</button><button id="signout">ログアウト</button>
     </div>
   </div>
 
@@ -747,6 +756,11 @@ const roleOf = () => (S.myRole||'member').toLowerCase();
 const isAdmin      = () => roleOf()==='admin';
 const isAccounting = () => ['accounting','admin'].includes(roleOf());
 const isManager    = () => ['manager','admin'].includes(roleOf());
+function folderVisibleToMe(f){
+  if(!f) return true;
+  const p = f.participants;
+  return !p || !p.length || p.includes(ME.email);
+}
 
 const S = {
   view:'knowledge', kstep:1,
@@ -859,6 +873,112 @@ function renderLogin(err){
   $('#reset').onclick = () => { localStorage.removeItem(CFG_KEY); localStorage.removeItem(OLD_CFG_KEY); location.reload(); };
 }
 $('#signout').onclick = () => signOut(auth).then(()=>location.reload());
+
+/* ---------- メンバー管理 ----------
+   役割(role)の変更・新規追加はadmin、フォルダごとの閲覧権限(参加フォルダ)の
+   変更はmanager以上が行える。一覧の閲覧と自分のフォルダ確認は全メンバー共通。 */
+function openMembers(){
+  const m=el('div','modal');
+  const rows = S.members.slice().sort((a,b)=>(a.name||a.email).localeCompare(b.name||b.email,'ja'));
+  m.innerHTML = `<div class="box" style="width:640px">
+    <h3>メンバー</h3>
+    <p>${rows.length}人が登録されています。役割を変えると経理・管理メニューで見える操作が変わります。
+    各フォルダを誰に見せるかは「参加フォルダ」、またはフォルダの設定から選べます。</p>
+    <div id="mem-list"></div>
+    ${isAdmin() ? `
+    <div class="fgrid" style="margin-top:16px">
+      <label>メールアドレス</label><input id="mem-email" placeholder="name@example.com">
+      <label>名前</label><input id="mem-name" placeholder="例：新村 佑介">
+      <label>役割</label><select id="mem-role">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('')}</select>
+    </div>
+    <div class="row"><button id="mem-add" class="primary">＋ 新規追加</button></div>
+    ` : ''}
+    <div class="row"><button id="mem-cl">閉じる</button></div>
+  </div>`;
+  document.body.appendChild(m);
+  const list = m.querySelector('#mem-list');
+  rows.forEach(mm=>{
+    const row=el('div','mrow');
+    row.innerHTML = `<span class="em"><b>${esc(mm.name||mm.email)}</b> <span class="help" style="display:inline">${esc(mm.email)}</span></span>`;
+    const sel=document.createElement('select');
+    Object.entries(ROLES).forEach(([k,v])=>{
+      const o=document.createElement('option'); o.value=k; o.textContent=v;
+      if((mm.role||'member').toLowerCase()===k) o.selected=true;
+      sel.appendChild(o);
+    });
+    sel.disabled = !isAdmin();
+    sel.onchange = async ()=>{
+      await setDoc(doc(db,'members',mm.email), {name:mm.name||'', role:sel.value}, {merge:true});
+      mm.role = sel.value;
+      if(mm.email===ME.email){ S.myRole = sel.value; renderNav(); }
+      toast('更新しました');
+    };
+    row.appendChild(sel);
+    const fb=el('button', null, '参加フォルダ');
+    fb.onclick=()=>openMemberFolders(mm.email, mm.name);
+    row.appendChild(fb);
+    if(isAdmin() && mm.email!==ME.email){
+      const delb=el('button', null, '削除');
+      delb.style.color='var(--danger)';
+      delb.onclick=async()=>{
+        if(!confirm(`${mm.name||mm.email} を削除します。よろしいですか？`)) return;
+        await deleteDoc(doc(db,'members',mm.email));
+        S.members = S.members.filter(x=>x.email!==mm.email);
+        row.remove();
+        toast('削除しました');
+      };
+      row.appendChild(delb);
+    }
+    list.appendChild(row);
+  });
+  m.querySelector('#mem-cl').onclick=()=>m.remove();
+  const addBtn = m.querySelector('#mem-add');
+  if(addBtn) addBtn.onclick = async ()=>{
+    const email = m.querySelector('#mem-email').value.trim().toLowerCase();
+    const name  = m.querySelector('#mem-name').value.trim();
+    const role  = m.querySelector('#mem-role').value;
+    if(!email || !email.includes('@')) return alert('メールアドレスを入れてください。');
+    if(S.members.some(x=>x.email===email)) return alert('すでに登録されています。');
+    await setDoc(doc(db,'members',email), {name, role, addedBy:ME.email, addedAt:nowISO()});
+    S.members.push({email, name, role});
+    m.remove(); openMembers();
+    toast('メンバーを追加しました');
+  };
+}
+function openMemberFolders(email, name){
+  const canEdit = isManager();
+  const m=el('div','modal');
+  const sections=[...new Set(S.folders.map(x=>x.section).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ja'));
+  m.innerHTML = `<div class="box" style="width:460px">
+    <h3>${esc(name||email)} の参加フォルダ</h3>
+    <p>チェックしたフォルダだけ閲覧できます。フォルダが未設定（誰もチェックされていない）の場合は全員が閲覧できます。
+    ${canEdit ? '' : '（変更はマネージャー以上が行えます）'}</p>
+    <div class="pgrid" id="mf-list" style="max-height:400px"></div>
+    <div class="row"><button id="mf-cl" class="primary">閉じる</button></div>
+  </div>`;
+  document.body.appendChild(m);
+  const list=m.querySelector('#mf-list');
+  sections.forEach(sec=>{
+    const h=el('div','help',esc(sec)); h.style.margin='10px 0 2px'; list.appendChild(h);
+    S.folders.filter(f=>f.section===sec).sort((a,b)=>a.name.localeCompare(b.name,'ja')).forEach(f=>{
+      const row=el('label','prow');
+      const checked=(f.participants||[]).includes(email);
+      row.innerHTML=`<input type="checkbox"${checked?' checked':''}${canEdit?'':' disabled'}><span>${esc(f.name)}</span>`;
+      row.querySelector('input').onchange = async (e)=>{
+        const p = new Set(f.participants||[]);
+        if(e.target.checked) p.add(email); else p.delete(email);
+        f.participants=[...p]; f.updatedAt=nowISO();
+        await setDoc(doc(db,'folders',String(f.id)), f);
+        renderSidebar();
+        toast('更新しました');
+      };
+      list.appendChild(row);
+    });
+  });
+  m.querySelector('#mf-cl').onclick=()=>m.remove();
+}
+$('#members-btn').onclick = openMembers;
+
 
 /* ---------- 管理メニュー ----------
    役割に合わないものは出さない。押してから「権限がありません」と言われるのが
@@ -1174,6 +1294,10 @@ async function loadIndex(){
     });
     S.notes=[...map.values()];
   }catch(e){}
+  S.notes = S.notes.filter(n=>{
+    const f = S.folders.find(x=>String(x.id)===String(n.folderId));
+    return !f || folderVisibleToMe(f);
+  });
   loadCorpus();
 }
 async function loadCorpus(){
@@ -1280,7 +1404,7 @@ function renderSidebar(){
   // ノートが1件も無いフォルダ（作ったばかりのもの）は「実務」タブに出す
   const totals={};
   S.notes.forEach(n=>{ totals[n.folderId]=(totals[n.folderId]||0)+1; });
-  const visible = f => counts[f.id] || (S.mode==='work' && !totals[f.id]);
+  const visible = f => (counts[f.id] || (S.mode==='work' && !totals[f.id])) && folderVisibleToMe(f);
 
   const bySec={};
   S.folders.forEach(f=>{ if(!visible(f)) return; (bySec[f.section] = bySec[f.section]||[]).push(f); });
@@ -1357,6 +1481,11 @@ function openFolder(id, presetSection){
     <div class="fgrid" id="f-newsec" style="display:none;margin-top:9px">
       <label>新しい区分名</label><input id="f-newsec-v" placeholder="例：⑧新規事業">
     </div>
+    <div class="fgrid" style="margin-top:14px">
+      <label>閲覧メンバー</label>
+      <div class="help">チェックしたメンバーだけが閲覧できます。誰もチェックしなければ全員が閲覧できます。</div>
+    </div>
+    <div class="pgrid" id="f-participants"></div>
     <div class="row">
       ${(!isNew && used===0)?'<button id="f-del" style="color:var(--danger);margin-right:auto">削除</button>':''}
       <button id="f-c">キャンセル</button>
@@ -1368,6 +1497,17 @@ function openFolder(id, presetSection){
   const $$ = s => m.querySelector(s);
   $$('#f-c').onclick=()=>m.remove();
   $$('#f-name').focus();
+  const curParts = new Set((f && f.participants) || []);
+  const pwrap = $$('#f-participants');
+  (S.members.length ? S.members : [{email:ME.email,name:ME.name}])
+    .slice().sort((a,b)=>(a.name||a.email).localeCompare(b.name||b.email,'ja'))
+    .forEach(mm=>{
+      const prow=el('label','prow');
+      prow.innerHTML=`<input type="checkbox" value="${esc(mm.email)}"${curParts.has(mm.email)?' checked':''}>
+        <span>${esc(mm.name||mm.email)}</span>
+        <span class="help" style="margin-left:auto">${esc(ROLES[(mm.role||'member').toLowerCase()]||'')}</span>`;
+      pwrap.appendChild(prow);
+    });
 
   const sel=$$('#f-sec'), newRow=$$('#f-newsec');
   sel.onchange=()=>{
@@ -1397,8 +1537,9 @@ function openFolder(id, presetSection){
     const dupF = S.folders.find(x=>x.name===name && x.section===sec && x.id!==id);
     if(dupF) return alert('同じ区分に同じ名前のフォルダがすでにあります。');
     const btn=$$('#f-s'); btn.disabled=true;
+    const participants = [...pwrap.querySelectorAll('input:checked')].map(x=>x.value);
     if(isNew){
-      const nf={ id:'f'+Date.now(), name, section:sec,
+      const nf={ id:'f'+Date.now(), name, section:sec, participants,
                  createdBy:ME.name, createdAt:nowISO(), updatedAt:nowISO() };
       await setDoc(doc(db,'folders',nf.id), nf);
       await logChange('folder', nf.id, name, null, nf, 'create');
@@ -1409,7 +1550,7 @@ function openFolder(id, presetSection){
     }else{
       const before={name:f.name, section:f.section};
       const renamed = f.name!==name;
-      f.name=name; f.section=sec; f.updatedAt=nowISO(); f.editor=ME.name;
+      f.name=name; f.section=sec; f.participants=participants; f.updatedAt=nowISO(); f.editor=ME.name;
       await setDoc(doc(db,'folders',String(f.id)), f);
       await logChange('folder', f.id, name, before, {name, section:sec}, 'update');
       if(renamed){
