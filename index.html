@@ -923,7 +923,7 @@ function renderPopupButton(box){
 // このプロジェクトの OAuth 2.0 クライアントID → 承認済みの JavaScript 生成元 に
 // https://periodcoo.github.io を追加する必要がある（未設定だと origin_mismatch で失敗する）。
 // 追加が済むまでは、これまでどおりの signInWithPopup を使う。
-const GIS_ORIGIN_AUTHORIZED = true;
+const GIS_ORIGIN_AUTHORIZED = false;
 async function renderGoogleButton(){
   const box = $('#gin'); if(!box) return;
   if(!GIS_ORIGIN_AUTHORIZED) return renderPopupButton(box);
