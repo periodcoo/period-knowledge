@@ -14,12 +14,13 @@
 html,body{height:100%}
 body{font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic Medium",sans-serif;
   color:var(--text);background:var(--bg);font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased}
-button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 input,textarea,select{font:inherit;color:inherit}
-a{color:var(--accent)}
+a{color:var(--accent);-webkit-tap-highlight-color:transparent}
+.fold,.item,.mcard,.tabbar button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 
 /* ---------- 全体レイアウト ---------- */
-#app{display:none;flex-direction:column;height:100vh}
+#app{display:none;flex-direction:column;height:100vh;height:100dvh}
 #app.ready{display:flex}
 .topbar{height:56px;flex:none;background:var(--navy);display:flex;align-items:center;gap:18px;padding:0 20px;color:#fff;position:relative;z-index:30}
 .brand{font-size:15px;letter-spacing:.14em;font-weight:600;white-space:nowrap}
@@ -562,9 +563,6 @@ table.rept td.z{color:#c8ced8}
   .nav button{flex:none;padding:7px 12px;font-size:12.5px}
   .search-wrap{order:4;width:100%;max-width:none}
   .search-wrap.hide{display:none}
-  #view-knowledge.on{grid-template-columns:1fr;grid-template-rows:auto auto 1fr}
-  #sidebar{max-height:190px}
-  #list{max-height:44vh;border-right:none;border-bottom:1px solid var(--line)}
   .page{padding:18px 14px 70px}
   .cards{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px}
   .card .vl{font-size:20px}
@@ -574,8 +572,9 @@ table.rept td.z{color:#c8ced8}
   .srow b{max-width:100%;width:100%}
   .srow .d{margin-left:0}
   .hsearch input{font-size:16px}
-  .filters select,.filters input{font-size:15px;padding:8px 9px}
+  .filters select,.filters input{font-size:16px;padding:8px 9px}
   .filters input.kw{min-width:0;flex:1}
+  .lsearch input{font-size:16px}
   .page > .page-w > div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
   table.tbl th:nth-child(5),table.tbl td:nth-child(5),
   table.tbl th:nth-child(9),table.tbl td:nth-child(9){display:none}
@@ -1109,6 +1108,11 @@ function acctTabs(w){
   });
   w.appendChild(s);
 }
+/* スマホ幅かどうか（760px以下 = モバイル用CSSが効く境界と揃えてある） */
+function isMobileUI(){
+  return typeof window.matchMedia==='function' && window.matchMedia('(max-width:760px)').matches;
+}
+
 function go(v){
   S.view=v;
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
@@ -1118,7 +1122,12 @@ function go(v){
   if(v==='vendors') renderVendors();
   if(v==='recurring') renderRecurring();
   if(v==='report') renderReport();
-  if(v==='knowledge') kStep(S.noteId ? 2 : 1);
+  if(v==='knowledge'){
+    // スマホ：ノートやフォルダを開いていなければ、まずフォルダ一覧を見せる
+    if(S.noteId) kStep(2);
+    else if(S.folderId!=null) kStep(1);
+    else kStep(isMobileUI() ? 0 : 1);
+  }
   renderNav();
   renderAlertBar();
   closeGpop();
@@ -1130,6 +1139,23 @@ function kStep(n){
   v.classList.add('k'+n);
   S.kstep=n;
 }
+/* 画面の向きを変える等で「スマホ／それ以外」の境目をまたいだら、
+   表示中の画面を作り直す（経理はカード/表の出し分け、ナレッジは段階の出し直し） */
+(function(){
+  if(typeof window.matchMedia!=='function') return; // matchMedia未対応の環境では何もしない
+  const mq = window.matchMedia('(max-width:760px)');
+  const onFlip = ()=>{
+    if(!$('#app').classList.contains('ready')) return;
+    if(S.view==='docs') renderDocs();
+    if(S.view==='knowledge'){
+      if(S.noteId) kStep(2);
+      else if(S.folderId!=null) kStep(1);
+      else kStep(isMobileUI() ? 0 : 1);
+    }
+  };
+  if(mq.addEventListener) mq.addEventListener('change', onFlip);
+  else if(mq.addListener) mq.addListener(onFlip); // 古いSafari対策
+})();
 
 /* ============================================================
    要対応の帯
@@ -1648,7 +1674,7 @@ function renderList(){
   }
   L.appendChild(head);
   // スマホ：フォルダ一覧へ戻る
-  { const bk=el('button','kback','← フォルダ'); bk.onclick=()=>kStep(0); L.insertBefore(bk, L.firstChild); }
+  { const bk=el('button','kback','← フォルダ'); bk.onclick=()=>{ S.folderId=null; S.results=null; renderSidebar(); kStep(0); }; L.insertBefore(bk, L.firstChild); }
   if(!rows.length){
     L.appendChild(el('div','empty', S.folderId
       ? 'このフォルダにはまだノートがありません。<br>上の「＋ 新規ノート」から書けます。'
@@ -1681,7 +1707,7 @@ async function renderDetail(){
   pushRecent('note', String(n.id), n.title, n.folder);
   const ed = S.editing;
   D.innerHTML='';
-  { const bk=el('button','kback','← ノート一覧'); bk.onclick=()=>kStep(1); D.appendChild(bk); }
+  { const bk=el('button','kback','← ノート一覧'); bk.onclick=()=>{ S.noteId=null; renderList(); kStep(1); }; D.appendChild(bk); }
   const head=el('div','detail-head');
   const h1=el('h1',null,esc(n.title));
   if(ed){ h1.contentEditable='true'; h1.id='t-edit'; }
@@ -2146,66 +2172,71 @@ function renderDocs(){
 
   if(!rows.length){ w.appendChild(el('div','empty','条件に一致する書類がありません')); return; }
 
-  const cols=[['issuedAt','発行日'],['type','種別'],['vendor','取引先'],['store','店舗'],
-              ['period','対象月'],['amount','金額'],['dueAt','支払期日'],['status','状態'],['fileName','ファイル']];
-  const t=el('table','tbl');
-  const th=el('thead'); const tr=el('tr');
-  cols.forEach(([k,l])=>{
-    const h=el('th',null, esc(l)+(S.docSort.k===k?` <span class="s">${S.docSort.d>0?'▲':'▼'}</span>`:''));
-    if(k==='amount') h.style.textAlign='right';
-    h.onclick=()=>{ if(S.docSort.k===k) S.docSort.d*=-1; else S.docSort={k,d:-1}; renderDocs(); };
-    tr.appendChild(h);
-  });
-  th.appendChild(tr); t.appendChild(th);
   const sorted = rows.slice().sort((a,b)=>{
     const k=S.docSort.k, d=S.docSort.d;
     let av=a[k], bv=b[k];
     if(k==='amount'){ av=Number(av)||0; bv=Number(bv)||0; return (av-bv)*d; }
     return String(av||'').localeCompare(String(bv||''),'ja')*d;
   });
-  const tb=el('tbody');
   const shown = sorted.slice(0,600);
-  shown.forEach(d=>{
-    const over = d.status==='unpaid' && d.dueAt && d.dueAt<today();
-    const late = isMissing(d);
-    const r=el('tr');
-    r.innerHTML=`<td style="white-space:nowrap">${esc(d.issuedAt||'')}</td>
-      <td><span class="pill t">${esc(d.type||'')}</span></td>
-      <td class="el">${esc(d.vendor||'')}${d.recurringId?' <span class="badge">定期</span>':''}</td>
-      <td style="white-space:nowrap">${esc(d.store||'')}</td>
-      <td style="white-space:nowrap">${esc(d.period||'')}</td>
-      <td class="num">${ocrChipCell(d)}</td>
-      <td style="white-space:nowrap">${d.dueAt? (over? `<span class="pill over">${esc(d.dueAt)}</span>` : esc(d.dueAt)) : '<span style="color:#c0c6d0">—</span>'}</td>
-      <td><span class="pill ${esc(d.status||'checked')}">${esc(DSTATUS[d.status]||'—')}</span>${late?' <span class="pill miss">未着</span>':''}</td>
-      <td class="el" style="color:var(--sub)">${esc(d.fileName||'')}</td>`;
-    r.onclick=()=>openDoc(d.id);
-    tb.appendChild(r);
-  });
-  t.appendChild(tb);
-  // 表の中でさらにスクロールさせない（見出し行が画面外へ消えてしまうため）。
-  // 横に長いときだけ横スクロールし、縦はページごと動かす。
-  const wrap=el('div','dtable'); wrap.style.cssText='overflow-x:auto;border-radius:6px';
-  wrap.appendChild(t); w.appendChild(wrap);
+  // 表とカードは片方しか画面に出ないので、いま見えるほうだけ作る（スマホでの無駄なDOM構築を避ける）
+  const mobile = isMobileUI();
 
-  // ---------- スマホ用のカード（A-7） ----------
-  const mc=el('div','mcards');
-  shown.forEach(d=>{
-    const over = d.status==='unpaid' && d.dueAt && d.dueAt<today();
-    const late = isMissing(d);
-    const c=el('div','mcard');
-    c.innerHTML=`<div class="t1">
-        <span class="pill ${esc(d.status||'checked')}">${esc(DSTATUS[d.status]||'—')}</span>
-        ${late?'<span class="pill miss">未着</span>':''}
-        <span class="pill t">${esc(d.type||'')}</span>
-        <span style="font-size:11.5px;color:var(--sub);margin-left:auto">${esc(d.store||'')}</span></div>
-      <div class="t2">${esc(d.vendor||'(取引先未設定)')}</div>
-      <div class="t3"><span class="amt">${ocrChipCell(d)}</span>
-        <span class="due${over?' over':''}">${d.dueAt?('期日 '+esc(d.dueAt)):'期日なし'}</span>
-        <span style="font-size:11.5px;color:#9aa3b2;margin-left:auto">${esc(d.period||'')}</span></div>`;
-    c.onclick=()=>openDoc(d.id);
-    mc.appendChild(c);
-  });
-  w.appendChild(mc);
+  if(!mobile){
+    const cols=[['issuedAt','発行日'],['type','種別'],['vendor','取引先'],['store','店舗'],
+                ['period','対象月'],['amount','金額'],['dueAt','支払期日'],['status','状態'],['fileName','ファイル']];
+    const t=el('table','tbl');
+    const th=el('thead'); const tr=el('tr');
+    cols.forEach(([k,l])=>{
+      const h=el('th',null, esc(l)+(S.docSort.k===k?` <span class="s">${S.docSort.d>0?'▲':'▼'}</span>`:''));
+      if(k==='amount') h.style.textAlign='right';
+      h.onclick=()=>{ if(S.docSort.k===k) S.docSort.d*=-1; else S.docSort={k,d:-1}; renderDocs(); };
+      tr.appendChild(h);
+    });
+    th.appendChild(tr); t.appendChild(th);
+    const tb=el('tbody');
+    shown.forEach(d=>{
+      const over = d.status==='unpaid' && d.dueAt && d.dueAt<today();
+      const late = isMissing(d);
+      const r=el('tr');
+      r.innerHTML=`<td style="white-space:nowrap">${esc(d.issuedAt||'')}</td>
+        <td><span class="pill t">${esc(d.type||'')}</span></td>
+        <td class="el">${esc(d.vendor||'')}${d.recurringId?' <span class="badge">定期</span>':''}</td>
+        <td style="white-space:nowrap">${esc(d.store||'')}</td>
+        <td style="white-space:nowrap">${esc(d.period||'')}</td>
+        <td class="num">${ocrChipCell(d)}</td>
+        <td style="white-space:nowrap">${d.dueAt? (over? `<span class="pill over">${esc(d.dueAt)}</span>` : esc(d.dueAt)) : '<span style="color:#c0c6d0">—</span>'}</td>
+        <td><span class="pill ${esc(d.status||'checked')}">${esc(DSTATUS[d.status]||'—')}</span>${late?' <span class="pill miss">未着</span>':''}</td>
+        <td class="el" style="color:var(--sub)">${esc(d.fileName||'')}</td>`;
+      r.onclick=()=>openDoc(d.id);
+      tb.appendChild(r);
+    });
+    t.appendChild(tb);
+    // 表の中でさらにスクロールさせない（見出し行が画面外へ消えてしまうため）。
+    // 横に長いときだけ横スクロールし、縦はページごと動かす。
+    const wrap=el('div','dtable'); wrap.style.cssText='overflow-x:auto;border-radius:6px';
+    wrap.appendChild(t); w.appendChild(wrap);
+  } else {
+    // ---------- スマホ用のカード（A-7） ----------
+    const mc=el('div','mcards');
+    shown.forEach(d=>{
+      const over = d.status==='unpaid' && d.dueAt && d.dueAt<today();
+      const late = isMissing(d);
+      const c=el('div','mcard');
+      c.innerHTML=`<div class="t1">
+          <span class="pill ${esc(d.status||'checked')}">${esc(DSTATUS[d.status]||'—')}</span>
+          ${late?'<span class="pill miss">未着</span>':''}
+          <span class="pill t">${esc(d.type||'')}</span>
+          <span style="font-size:11.5px;color:var(--sub);margin-left:auto">${esc(d.store||'')}</span></div>
+        <div class="t2">${esc(d.vendor||'(取引先未設定)')}</div>
+        <div class="t3"><span class="amt">${ocrChipCell(d)}</span>
+          <span class="due${over?' over':''}">${d.dueAt?('期日 '+esc(d.dueAt)):'期日なし'}</span>
+          <span style="font-size:11.5px;color:#9aa3b2;margin-left:auto">${esc(d.period||'')}</span></div>`;
+      c.onclick=()=>openDoc(d.id);
+      mc.appendChild(c);
+    });
+    w.appendChild(mc);
+  }
   bindOcrChips(w);
 
   if(sorted.length>600) w.appendChild(el('div','empty',`ほか ${sorted.length-600} 件は絞り込んでください`));
