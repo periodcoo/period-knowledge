@@ -1803,7 +1803,7 @@ async function renderDetail(){
         `<span class="tag click" data-tag="${esc(t)}">${esc(t)}</span>`).join(' ')}`));
   const tools=el('div','tools');
   if(ed){
-    [['太字','bold'],['斜体','italic'],['下線','underline'],['箇条書き','insertUnorderedList'],
+    [['太字','bold'],['斜体','italic'],['下線','underline'],['取り消し線','strikeThrough'],['箇条書き','insertUnorderedList'],
      ['番号','insertOrderedList'],['見出し','formatBlock:h3'],['標準','formatBlock:div']]
       .forEach(([label,cmd])=>{
         const b=el('button',null,label);
